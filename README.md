@@ -9,7 +9,7 @@ Views are lightweight ranges that refer to (a subset of) a range
 with optional transformation of the values.
 
 Views are simple and great to use.
-However, as standardozed they break a couple of basic guarantees collections
+However, as standardized they break a couple of basic guarantees collections
 such as containers usually have:
 - You might not be able to iterate over the elements of a standard view when the view is const.
 - As a consequence generic code that for all ranges (coontainers and views)
