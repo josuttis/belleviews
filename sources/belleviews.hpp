@@ -1,7 +1,7 @@
 #include "makeconstiterator.hpp"
 
-#ifndef BASICVIEWS_HPP
-#define BASICVIEWS_HPP
+#ifndef BELLEVIEWS_HPP
+#define BELLEVIEWS_HPP
 
 //**********************************************************************
 // C++20 and C++23 introduces view types that are 
@@ -36,7 +36,7 @@
 #include <ranges>
 #include <cassert>
 
-namespace basicviews {
+namespace belleviews {
 
 namespace _intern {
   template<typename Rg>
@@ -99,12 +99,12 @@ class drop_view : public std::ranges::view_interface<drop_view<V>>
 template<typename R>
 drop_view(R&&, std::ranges::range_difference_t<R>) -> drop_view<std::views::all_t<R>>;
 
-} // namespace basicviews
+} // namespace belleviews
 
 template<typename _Tp>
-inline constexpr bool std::ranges::enable_borrowed_range<basicviews::drop_view<_Tp>> = std::ranges::enable_borrowed_range<_Tp>;
+inline constexpr bool std::ranges::enable_borrowed_range<belleviews::drop_view<_Tp>> = std::ranges::enable_borrowed_range<_Tp>;
 
-namespace basicviews {
+namespace belleviews {
 
 namespace _intern {
   template<typename Rg, typename DiffT>
@@ -112,7 +112,7 @@ namespace _intern {
 }
 
 struct _Drop {
-   // for: basicviews::drop_view{coll, 2}
+   // for: belleviews::drop_view{coll, 2}
    template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
    requires _intern::can_drop_view<Rg, DiffT>
    constexpr auto
@@ -120,7 +120,7 @@ struct _Drop {
      return drop_view{std::forward<Rg>(rg), diff};
    }
 
-   // for: coll | basicviews::drop(2)
+   // for: coll | belleviews::drop(2)
    template<typename T>
    struct PartialDrop {
      T diff;
@@ -141,7 +141,11 @@ struct _Drop {
 
 inline constexpr _Drop drop;
 
-} // namespace basicviews
+} // namespace belleviews
 
+namespace bel::views {
+  //using drop = belleviews::drop;
+  inline constexpr belleviews::_Drop drop;
+}
 
-#endif // BASICVIEWS_HPP
+#endif // BELLEVIEWS_HPP
