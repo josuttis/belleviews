@@ -1,0 +1,12 @@
+*~
+~*
+*.bak
+*.swp
+*.swo
+*.tmp
+*.stackdump
+*.obj
+*.o
+*.exe
+*.ifc
+gcm.cache
