@@ -11,23 +11,23 @@ with optional transformation of the values.
 Views are simple and great to use.
 However, as standardozed they break a couple of basic guarantees collections
 such as containers usually have:
--- You might not be able to iterate over the elements of a standard view when the view is const.
--- As a consequence generic code that for all ranges (coontainers and views)
+- You might not be able to iterate over the elements of a standard view when the view is const.
+- As a consequence generic code that for all ranges (coontainers and views)
    has to declare the parameters as universal/forwarding references.
--- Standard views do not propagate constness.
+- Standard views do not propagate constness.
    This means that declaring the view const does not declare the elements to be const.
--- Iterating over a standard view concurrently with two threads might cause a data race
+- Iterating over a standard view concurrently with two threads might cause a data race
    (a runtime error due to undefined behavior).
--- For that reason, using standard views in parallel algorithms is
+- For that reason, using standard views in parallel algorithms is
    also a runtime error (undefined behavior).
--- For some standard views declaring the elements as const does have no effect.
+- For some standard views declaring the elements as const does have no effect.
    You might be able to modify the members of a const element of a view.
--- Iterations that read elements might affect the functional behavior
+- Iterations that read elements might affect the functional behavior
    of later iterations.
--- Copying a view might create a view that has a different state and behavior than the source view.
--- cbegin() and cend() might not make elements const.
--- Type const_iterator is available.
--- A standard view is not always a pure subset restricting or dealing with the elements of a range,
+- Copying a view might create a view that has a different state and behavior than the source view.
+- cbegin() and cend() might not make elements const.
+- Type const_iterator is available.
+- A standard view is not always a pure subset restricting or dealing with the elements of a range,
    but not providing opeionts the range would not provide.
    They might remove constraints and provide options, the range itself does not have. 
 
@@ -35,10 +35,10 @@ This make the use of views error-prone, confusing and programmers might easily c
 wihtout being noticing it.
 
 There are multiple reasons for this behavior:
--- Views might cache begin to oiptimize for multiple iterations with the same view
+- Views might cache begin to oiptimize for multiple iterations with the same view
    (the funny part is that due to its restrictions, it is recommended to use them ad-hoc
     and iterate only once).
--- The designers of the views considered views as pointers instead of
+- The designers of the views considered views as pointers instead of
    references to collections. That especially causes the confusing handling of const.
 
 We can do better.
