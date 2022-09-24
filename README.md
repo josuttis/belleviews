@@ -1,6 +1,7 @@
 # Belle Views for C++
 
-Belleviews - A library of views easier to use than the C++ standard library views
+Belleviews - A library of C++ views that are  easier to use, more robust,
+and cause less unexpected compile-time and runtime errors than the views of the C++ standard library.
 
 ## Why?
 
