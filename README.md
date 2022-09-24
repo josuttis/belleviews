@@ -54,9 +54,19 @@ All you hav to do is to use the namespace bel::views instead of std::views.
 
 ## For example
 
-The attached script few examples compaing standard views and belleviews:
-
 TODO
+
+For the moment see sources/testdrop.cpp
+
+## ToDo
+
+1. Support of basic views: drop, take, filter, transform
+1. Why does make_const not work for sentinels?
+1. Support of all, counted,
+1. Support of elements, keys,values
+   - with fix that elements always works on tuple-like APIs
+1. Support of reverse
+1. Additional pipe begin ?
 
 
 ## Tests

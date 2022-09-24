@@ -78,8 +78,13 @@ class drop_view : public std::ranges::view_interface<drop_view<V>>
   }
   constexpr auto end() const
   requires std::ranges::range<const V> {
-    return std::ranges::end(base_);
-    //return make_const_iterator(std::ranges::end(base_));
+    auto it = std::ranges::end(base_);
+    //if constexpr(requires { make_const_iterator(it);}) {
+      return make_const_iterator(it);
+    //}
+    //else {
+    //  return it;
+    //}
   }
 
   constexpr auto size()
