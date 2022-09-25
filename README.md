@@ -61,9 +61,16 @@ For the moment see sources/testdrop.cpp
 
 ## ToDo
 
-1. Support of basic views: drop, take, filter, transform
+DONE:
+- drop_view
+- take_view
+
+OPEN:
+- take with vector that reallocated memory
+
+1. Support of basic views: drop, take, filter, transform (<font color="red">at work</font>)
 1. Why does make_const not work for sentinels?
-1. Support of all, counted,
+1. Support of all, counted, common
 1. Support of elements, keys,values
    - with fix that elements always works on tuple-like APIs
 1. Support of reverse
