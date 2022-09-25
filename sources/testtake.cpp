@@ -3,6 +3,7 @@
 #include <list>
 #include <numeric>
 #include <thread>
+#include <complex>
 #include <execution>
 #include "belleviews.hpp"
 
@@ -37,7 +38,6 @@ auto printAndAccum(auto&& coll)
   return sum;
 }
 
-
 int main()
 {
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};
@@ -70,15 +70,19 @@ int main()
 
 
   //**** test const propagation:
-  std::vector coll2{1, 2, 3, 4, 5, 6, 7, 8};
+  std::array coll2{1, 2, 3, 4, 5, 6, 7, 8};
   print(coll2);
 
-  const auto& coll2_std_cref = coll2 | std::views::drop(2);
-  *coll2_std_cref.begin() += 100;           // OOPS: compiles 
+  const auto& coll2_std_cref = coll2 | std::views::take(6);
+  *coll2_std_cref.begin() += 100;     // OOPS: compiles 
+  // with array<const complex, 8>:
+  //   error: no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
   print(coll2);
 
-  const auto& coll2_bel_cref = coll2 | bel::views::drop(2);
-  //*coll2_bel_cref.begin() += 100;       // ERROR: GOOD
+  const auto& coll2_bel_cref = coll2 | bel::views::take(6);
+  //*coll2_bel_cref.begin() += 100;   // ERROR (good)
+                                      //  no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
+  assert(std::is_const_v<std::remove_reference_t<decltype(*coll2_bel_cref.begin())>>);
   print(coll2);
 }
 

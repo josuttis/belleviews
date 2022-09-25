@@ -171,6 +171,7 @@ class take_view : public std::ranges::view_interface<take_view<V>>
     }
   }
   constexpr auto begin() const requires std::ranges::range<const V> {
+    std::cout << "take_view::begin() const\n";
     if constexpr (std::ranges::sized_range<const V>) {
       if constexpr (std::ranges::random_access_range<const V>) {
         //return std::ranges::begin(base_);
