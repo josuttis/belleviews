@@ -1,3 +1,6 @@
+#ifndef MAKECONSTITERATOR_HPP
+#define MAKECONSTITERATOR_HPP
+
 #include <functional>
 #include <concepts>
 #include <ranges>
@@ -142,4 +145,5 @@ constexpr auto make_const_sentinel(S s) {
 
 //////////////////////////
 
+#endif // MAKECONSTITERATOR_HPP
 
