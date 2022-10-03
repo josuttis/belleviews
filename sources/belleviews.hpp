@@ -38,6 +38,10 @@ namespace _intern {
                          && std::same_as<std::ranges::iterator_t<Rg>, std::ranges::iterator_t<const Rg>>
                          && std::same_as<std::ranges::sentinel_t<Rg>, std::ranges::sentinel_t<const Rg>>;
 
+  template<typename It>
+  concept has_arrow = std::input_iterator<It> &&
+                      (std::is_pointer_v<It> || requires(It it) { it.operator->(); });
+
   template<bool _Const, typename _Tp>
     using maybe_const_t = std::conditional_t<_Const, const _Tp, _Tp>;
 }
@@ -46,6 +50,7 @@ namespace _intern {
 
 #include "belletake.hpp"
 #include "belledrop.hpp"
+#include "bellefilter.hpp"
 
 
 #endif // BELLEVIEWS_HPP

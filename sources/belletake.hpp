@@ -118,11 +118,11 @@ class take_view : public std::ranges::view_interface<take_view<V>>
       using CI = std::counted_iterator<std::ranges::iterator_t<_intern::maybe_const_t<OtherConst, V>>>; // exposition only
       std::ranges::sentinel_t<Base > end_ = std::ranges::sentinel_t<Base >(); // exposition only
     public:
-      sentinel () = default;
-      constexpr explicit sentinel (std::ranges::sentinel_t<Base > end)
+      sentinel() = default;
+      constexpr explicit sentinel(std::ranges::sentinel_t<Base> end)
        : end_(end) {
       }
-      constexpr sentinel (sentinel <!IsConst> s)
+      constexpr sentinel(sentinel<!IsConst> s)
         requires IsConst && std::convertible_to<std::ranges::sentinel_t<V>, std::ranges::sentinel_t<Base >>
        : end_{std::move(s.end_)} {
       }
