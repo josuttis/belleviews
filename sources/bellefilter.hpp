@@ -158,22 +158,56 @@ requires std::ranges::view<V> && std::is_object_v<Pred>
 class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 {
  private:
-  class Sentinel;
-  class Iterator {
+  V base_ = V();                 // exposition only
+  //semiregular-box<Pred> pred_;   // exposition only
+  // TODO: semiregular box:
+  [[no_unique_address]] intern::__box<Pred> pred_;
+  // 24.7.4.3, class filter_view::iterator
+  //above: class iterator;                // exposition only
+  // 24.7.4.4, class filter_view::sentinel
+  //above: class sentinel;                // exposition only
+ public:
+
+}
+*/
+
+template<std::ranges::input_range V,
+         std::indirect_unary_predicate<std::ranges::iterator_t<V>> Pred>
+requires std::ranges::view<V> && std::is_object_v<Pred>
+class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
+{
+ private:
+  struct Sentinel;
+
+  struct Iterator //: __detail::__filter_view_iter_cat<V>
+  {
+   private:
+    /* TODO:
+    static constexpr auto _S_iter_concept() {
+      if constexpr (std::ranges::bidirectional_range<V>)
+        return std::bidirectional_iterator_tag{};
+      else if constexpr (std::ranges::forward_range<V>)
+        return std::forward_iterator_tag{};
+      else
+        return std::input_iterator_tag{};
+    }
+    */
+
    private:
     friend filter_view;
     using VIterT = std::ranges::iterator_t<V>;
     VIterT current_ = VIterT();  // exposition only
-    filter_view* filterViewPtr_ = nullptr;                         // exposition only
+    filter_view* filterViewPtr = nullptr;                         // exposition only
+
    public:
     //using iterator_concept = see below ;
     //using iterator_category = see below ;
     using value_type = std::ranges::range_value_t<V>;
     using difference_type = std::ranges::range_difference_t<V>;
-
     Iterator() requires std::default_initializable<VIterT> = default;  // requires not in standard
+
     constexpr Iterator(filter_view* par, VIterT cur)
-     : current_(std::move(cur)), filterViewPtr_{par} {
+     : current_(std::move(cur)), filterViewPtr{par} {
     }
 
     constexpr const VIterT& base() const& noexcept {
@@ -193,18 +227,24 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 
     constexpr Iterator& operator++() {
       current_ = std::ranges::find_if(std::move(++current_),
-                                      std::ranges::end(filterViewPtr_->base_),
-                                      std::ref(*filterViewPtr_->pred_));
+                                      std::ranges::end(filterViewPtr->base_),
+                                      std::ref(*filterViewPtr->pred_));
       return *this;
     }
     constexpr void operator++(int) {
       ++*this;
     }
+    constexpr Iterator operator++(int) requires std::ranges::forward_range<V> {
+      auto __tmp = *this;
+      ++*this;
+      return __tmp;
+    }
+
     constexpr Iterator& operator--() requires std::ranges::bidirectional_range<V> {
       do {
         --current_;
       }
-      while (!std::invoke(*filterViewPtr_->pred_, *current_));
+      while (!std::invoke(*filterViewPtr->pred_, *current_));
       return *this;
     }
     constexpr Iterator operator--(int) requires std::ranges::bidirectional_range<V> {
@@ -229,177 +269,6 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   };
 
  private:
- private:
-  V base_ = V();                 // exposition only
-  //semiregular-box<Pred> pred_;   // exposition only
-  // TODO: semiregular box:
-  [[no_unique_address]] intern::__box<Pred> pred_;
-  // 24.7.4.3, class filter_view::iterator
-  //above: class iterator;                // exposition only
-  // 24.7.4.4, class filter_view::sentinel
-  //above: class sentinel;                // exposition only
- public:
-  filter_view() requires (std::default_initializable<V>
-                              && std::default_initializable<Pred>) = default;
-
-  constexpr filter_view(V b, Pred p)
-   : base_(std::move(b)), pred_(std::move(p)) {
-  }
-
-  constexpr V base() const& requires std::copy_constructible<V> { return base_; }
-  constexpr V base() && { return std::move(base_); }
-  constexpr const Pred& pred() const {
-    return *pred_;
-  }
-
-  constexpr Iterator begin() {
-    //TODO with box: assert(pred_.has_value());
-    auto it = std::ranges::find_if(std::ranges::begin(base_),
-                                   std::ranges::end(base_),
-                                   std::ref(*pred_));
-    return {this, std::move(it)};
-  }
-  constexpr Iterator begin() const {
-    //TODO with box: assert(pred_.has_value());
-    auto it = std::ranges::find_if(std::ranges::begin(base_),
-                                   std::ranges::end(base_),
-                                   pred_); //std::ref(*pred_));
-    return {this, std::move(it)};
-  }
-  constexpr auto end() {
-    if constexpr (std::ranges::common_range<V>)
-      return Iterator{*this, std::ranges::end(base_)};
-    else
-      return Sentinel{*this};
-  }
-  constexpr auto end() const {
-    if constexpr (std::ranges::common_range<V>)
-      return Iterator{*this, std::ranges::end(base_)};
-    else
-      return Sentinel{*this};
-  }
-}
- template<class R, class Pred>
- filter_view(R&&, Pred) -> filter_view<std::views::all_t<R>, Pred>;
-*/
-
-  template<std::ranges::input_range V,
-           std::indirect_unary_predicate<std::ranges::iterator_t<V>> _Pred>
-  requires std::ranges::view<V> && std::is_object_v<_Pred>
-  class filter_view : public std::ranges::view_interface<filter_view<V, _Pred>>
-  {
-   private:
-    struct Sentinel;
-
-    struct Iterator //: __detail::__filter_view_iter_cat<V>
-    {
-     private:
-static constexpr auto
-        _S_iter_concept()
-        {
-          if constexpr (std::ranges::bidirectional_range<V>)
-            return std::bidirectional_iterator_tag{};
-          else if constexpr (std::ranges::forward_range<V>)
-            return std::forward_iterator_tag{};
-          else
-            return std::input_iterator_tag{};
-        }
-
-        friend filter_view;
-
-        using V_iter = std::ranges::iterator_t<V>;
-
-        V_iter _M_current = V_iter();
-        filter_view* _M_parent = nullptr;
-
-      public:
-        //using iterator_concept = decltype(_S_iter_concept());
-        // iterator_category defined in __filter_view_iter_cat
-        using value_type = std::ranges::range_value_t<V>;
-        using difference_type = std::ranges::range_difference_t<V>;
-
-        Iterator() requires std::default_initializable<V_iter> = default;
-
-        constexpr
-        Iterator(filter_view* __parent, V_iter __current)
-          : _M_current(std::move(__current)),
-            _M_parent(__parent)
-        { }
-
-        constexpr const V_iter&
-        base() const & noexcept
-        { return _M_current; }
-
-        constexpr V_iter
-        base() &&
-        { return std::move(_M_current); }
-
-        constexpr std::ranges::range_reference_t<V>
-        operator*() const
-        { return *_M_current; }
-
-        constexpr V_iter
-        operator->() const
-          requires _intern::has_arrow<V_iter>
-            && std::copyable<V_iter>
-        { return _M_current; }
-
-        constexpr Iterator&
-        operator++()
-        {
-          _M_current = std::ranges::find_if(std::move(++_M_current),
-                                       std::ranges::end(_M_parent->_M_base),
-                                       std::ref(*_M_parent->_M_pred));
-          return *this;
-        }
-
-        constexpr void
-        operator++(int)
-        { ++*this; }
-
-        constexpr Iterator
-        operator++(int) requires std::ranges::forward_range<V>
-        {
-          auto __tmp = *this;
-          ++*this;
-          return __tmp;
-        }
-
-        constexpr Iterator&
-        operator--() requires std::ranges::bidirectional_range<V>
-        {
-          do
-            --_M_current;
-          while (!std::invoke(*_M_parent->_M_pred, *_M_current));
-          return *this;
-        }
-
-        constexpr Iterator
-        operator--(int) requires std::ranges::bidirectional_range<V>
-        {
-          auto __tmp = *this;
-          --*this;
-          return __tmp;
-        }
-
-        friend constexpr bool
-        operator==(const Iterator& __x, const Iterator& __y)
-          requires std::equality_comparable<V_iter>
-        { return __x._M_current == __y._M_current; }
-
-        friend constexpr std::ranges::range_rvalue_reference_t<V>
-        iter_move(const Iterator& __i)
-          noexcept(noexcept(std::ranges::iter_move(__i._M_current)))
-        { return std::ranges::iter_move(__i._M_current); }
-
-        friend constexpr void
-        iter_swap(const Iterator& __x, const Iterator& __y)
-          noexcept(noexcept(std::ranges::iter_swap(__x._M_current, __y._M_current)))
-          requires std::indirectly_swappable<V_iter>
-        { std::ranges::iter_swap(__x._M_current, __y._M_current); }
-      };
-
- private:
   class Sentinel {
    private:
      std::ranges::sentinel_t<V> end_ = std::ranges::sentinel_t<V>(); // exposition only
@@ -421,59 +290,49 @@ static constexpr auto
   };
 
  private:
-      V _M_base = V();
-      [[no_unique_address]] intern::__box<_Pred> _M_pred;
-      //[[no_unique_address]] __detail::_CachedPosition<V> _M_cached_begin;
+  V base_ = V();
+  [[no_unique_address]] intern::__box<Pred> pred_;
+  //[[no_unique_address]] __detail::_CachedPosition<V> _M_cached_begin;
 
-    public:
-      filter_view() requires (std::default_initializable<V>
-                              && std::default_initializable<_Pred>)
-        = default;
+ public:
+  filter_view() requires (std::default_initializable<V> && std::default_initializable<Pred>)
+   = default;
 
-      constexpr
-      filter_view(V __base, _Pred __pred)
-        : _M_base(std::move(__base)), _M_pred(std::move(__pred))
-      { }
+  constexpr
+  filter_view(V __base, Pred __pred)
+   : base_(std::move(__base)), pred_(std::move(__pred)) {
+  }
 
-      constexpr V
-      base() const& requires std::copy_constructible<V>
-      { return _M_base; }
+  constexpr V base() const& requires std::copy_constructible<V> { return base_; }
+  constexpr V base() && { return std::move(base_); }
+  constexpr const Pred& pred() const {
+    return *pred_;
+  }
 
-      constexpr V
-      base() &&
-      { return std::move(_M_base); }
+  constexpr Iterator begin() {
+    assert(pred_.has_value());
+    auto it = std::ranges::find_if(std::ranges::begin(base_),
+                                   std::ranges::end(base_),
+                                   std::ref(*pred_));
+    return {this, std::move(it)};
+  }
+  constexpr Iterator begin() const {
+    assert(pred_.has_value());
+    auto it = std::ranges::find_if(std::ranges::begin(base_),
+                                   std::ranges::end(base_),
+                                   pred_); //std::ref(*pred_));
+    return {this, std::move(it)};
+  }
+  constexpr auto end() {
+    if constexpr (std::ranges::common_range<V>)
+      return Iterator{this, std::ranges::end(base_)};
+    else
+      return Sentinel{this};
+    }
+};
 
-      constexpr const _Pred&
-      pred() const
-      { return *_M_pred; }
-
-      constexpr Iterator
-      begin()
-      {
-        //if (_M_cached_begin._M_has_value())
-        //  return {this, _M_cached_begin._M_get(_M_base)};
-
-        __glibcxx_assert(_M_pred.has_value());
-        auto __it = std::ranges::find_if(std::ranges::begin(_M_base),
-                                    std::ranges::end(_M_base),
-                                    std::ref(*_M_pred));
-        //_M_cached_begin._M_set(_M_base, __it);
-        return {this, std::move(__it)};
-      }
-
-      constexpr auto
-      end()
-      {
-        if constexpr (std::ranges::common_range<V>)
-          return Iterator{this, std::ranges::end(_M_base)};
-        else
-          return Sentinel{this};
-      }
-    };
-
-  template<typename _Range, typename _Pred>
-    filter_view(_Range&&, _Pred) -> filter_view<std::views::all_t<_Range>, _Pred>;
-
+template<class R, class Pred>
+filter_view(R&&, Pred) -> filter_view<std::views::all_t<R>, Pred>;
 
 } // namespace belleviews
 
