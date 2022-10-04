@@ -400,7 +400,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   }
 
   constexpr Iterator begin() {
-    std::cout << "filter_view::begin()\n";
+    //std::cout << "filter_view::begin()\n";
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
@@ -408,7 +408,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     return Iterator{this, std::move(it)};
   }
   constexpr ConstIterator begin() const {
-    std::cout << "filter_view::begin() const\n";
+    //std::cout << "filter_view::begin() const\n";
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
