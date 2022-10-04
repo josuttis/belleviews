@@ -73,8 +73,9 @@ int main()
   auto v2 = bel::views::drop(coll, 2);
   print(v2);
 
+  //print(coll | std::views::drop(2));  // ERROR withg standard views
   auto v3 = coll | bel::views::drop(2);
-  print(v3);
+  print(v3);                            // OK with belle views
 
   auto v4 = coll | bel::views::drop(2) | std::views::take(4);
   print(v4);

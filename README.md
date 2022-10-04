@@ -53,23 +53,37 @@ tricks.
 
 All you hav to do is to use the namespace bel::views instead of std::views.
 
-## For example
+## Examples
 
-TODO
+Belle views can always iterate over elements even if the views are const:
 
-For the moment see sources/testdrop.cpp
+    template<typename T>
+    void print(const T& coll);           // print elements of a collection
+    
+    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+    std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
+
+    print(vec | std::views::drop(2));    // OK
+    print(lst | std::views::drop(2));    // ERROR with standard views
+    print(vec | bel::views::drop(2));    // OK
+    print(lst | bel::views::drop(2));    // OK with belle views
+
+For more see in sources: testdrop.cpp, testtake.cpp, testfilter.cpp
 
 ## ToDo
 
-DONE:
+AVAILABLE:
 - drop_view
 - take_view
+- filter_view
 
-OPEN:
-- take with vector that reallocated memory
+OPEN ISSUES:
+- const sentinel support
+  (why does make_const_iterator() not work for sentinels?)
+- make using std views with bel::filter compile
 
-1. Support of basic views: drop, take, filter, transform (<font color="red">at work</font>)
-1. Why does make_const not work for sentinels?
+OPEN TOPICS:
+1. Support of remaining basic views: transform (<font color="red">at work</font>)
 1. Support of all, counted, common
 1. Support of elements, keys,values
    - with fix that elements always works on tuple-like APIs
