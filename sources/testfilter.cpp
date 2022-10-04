@@ -50,20 +50,19 @@ int main()
 
   //auto v1 = std::ranges::filter_view{coll, notTimes3};
   auto v1 = belleviews::filter_view{coll, notTimes3};
-  printUniversal("v1: ", v1);
-  //print(v1);
+  print(v1);
 
   auto v2 = bel::views::filter(coll, notTimes3);
-  printUniversal("v2: ", v2);
+  print(v2);
 
-  /*
-  auto v3 = coll | bel::views::take(6);
+  auto v3 = coll | bel::views::filter(notTimes3);
   print(v3);
 
-  auto v4 = coll | bel::views::drop(2) | std::views::take(4);
+  /*
+  auto v4 = coll | bel::views::drop(2) | std::views::filter(notTimes3);
   print(v4);
 
-  auto v5 = coll | std::views::take(6) | bel::views::drop(2);
+  auto v5 = coll | std::views::filter(notTimes3) | bel::views::drop(2);
   print(v5);
 
   //auto v6 = coll | std::views::take(6) | bel::views::take(2) | std::views::take(2);

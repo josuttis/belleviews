@@ -268,6 +268,96 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
   };
 
+  struct ConstIterator //: __detail::__filter_view_iter_cat<V>
+  {
+   private:
+    /* TODO:
+    static constexpr auto _S_iter_concept() {
+      if constexpr (std::ranges::bidirectional_range<V>)
+        return std::bidirectional_iterator_tag{};
+      else if constexpr (std::ranges::forward_range<V>)
+        return std::forward_iterator_tag{};
+      else
+        return std::input_iterator_tag{};
+    }
+    */
+
+   private:
+    friend filter_view;
+    using VIterT = std::ranges::iterator_t<V>;
+    VIterT current_ = VIterT();  // exposition only
+    const filter_view* filterViewPtr = nullptr;                         // exposition only
+
+   public:
+    //using iterator_concept = see below ;
+    //using iterator_category = see below ;
+    using value_type = std::ranges::range_value_t<V>;
+    using difference_type = std::ranges::range_difference_t<V>;
+    ConstIterator() requires std::default_initializable<VIterT> = default;  // requires not in standard
+
+    constexpr ConstIterator(const filter_view* par, VIterT cur)
+     : current_(std::move(cur)), filterViewPtr{par} {
+    }
+
+    constexpr const VIterT& base() const& noexcept {
+      return current_;
+    }
+    constexpr VIterT base() && {
+      return std::move(current_);
+    }
+
+    constexpr const std::ranges::range_reference_t<V> operator*() const {
+      return *current_;
+    }
+    constexpr VIterT operator->() const
+        requires _intern::has_arrow<VIterT> && std::copyable<VIterT> {
+      return current_;
+    }
+
+    constexpr ConstIterator& operator++() {
+      current_ = std::ranges::find_if(std::move(++current_),
+                                      std::ranges::end(filterViewPtr->base_),
+                                      std::ref(*filterViewPtr->pred_));
+      return *this;
+    }
+    constexpr void operator++(int) {
+      ++*this;
+    }
+    constexpr ConstIterator operator++(int) requires std::ranges::forward_range<V> {
+      auto __tmp = *this;
+      ++*this;
+      return __tmp;
+    }
+
+    constexpr ConstIterator& operator--() requires std::ranges::bidirectional_range<V> {
+      do {
+        --current_;
+      }
+      while (!std::invoke(*filterViewPtr->pred_, *current_));
+      return *this;
+    }
+    constexpr ConstIterator operator--(int) requires std::ranges::bidirectional_range<V> {
+      auto tmp = *this;
+      --*this;
+      return tmp;
+    }
+
+    friend constexpr bool operator==(const ConstIterator& x, const ConstIterator& y)
+      requires std::equality_comparable<VIterT> {
+        return x.current_ == y.current_;
+    }
+    friend constexpr std::ranges::range_rvalue_reference_t<V> iter_move(const ConstIterator& i)
+      noexcept(noexcept(std::ranges::iter_move(i.current_))) {
+        return std::ranges::iter_move(i.current_);
+    }
+    friend constexpr void iter_swap(const ConstIterator& x, const ConstIterator& y)
+      noexcept(noexcept(std::ranges::iter_swap(x.current_, y.current_)))
+      requires std::indirectly_swappable<VIterT> {
+        std::ranges::iter_swap(x.current_, y.current_);
+    }
+  };
+
+
  private:
   class Sentinel {
    private:
@@ -314,21 +404,29 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
                                    std::ref(*pred_));
-    return {this, std::move(it)};
+    return Iterator{this, std::move(it)};
   }
-  constexpr Iterator begin() const {
+  constexpr ConstIterator begin() const {
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
-                                   pred_); //std::ref(*pred_));
-    return {this, std::move(it)};
+                                   std::ref(*pred_));
+    return ConstIterator{this, std::move(it)};
+    //return make_const_iterator(Iterator{this, std::move(it)});
   }
   constexpr auto end() {
     if constexpr (std::ranges::common_range<V>)
       return Iterator{this, std::ranges::end(base_)};
     else
       return Sentinel{this};
-    }
+  }
+  constexpr auto end() const {
+    if constexpr (std::ranges::common_range<V>)
+      return ConstIterator{this, std::ranges::end(base_)};
+      //return make_const_iterator(Iterator{this, std::ranges::end(base_)});
+    else
+      return Sentinel{this};
+  }
 };
 
 template<class R, class Pred>
