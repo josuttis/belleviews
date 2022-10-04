@@ -158,7 +158,9 @@ class take_view : public std::ranges::view_interface<take_view<V>>
   constexpr V base() const & requires std::copy_constructible<V> { return base_; }
   constexpr V base() && { return std::move(base_); }
 
+  // begin() for non-simple views (already in the standard):
   constexpr auto begin() requires (!_intern::simple_view<V>) {
+    //std::cout << "take_view::begin() for non-simple views\n";
     if constexpr (std::ranges::sized_range<V>) {
       if constexpr (std::ranges::random_access_range<V>) {
         return std::ranges::begin(base_);
@@ -170,8 +172,25 @@ class take_view : public std::ranges::view_interface<take_view<V>>
       return std::counted_iterator(std::ranges::begin(base_), count_);
     }
   }
+  // begin() const for const-iterable views (already in the standard)
+  // is splitted:
+  // - the non-const version returns non-const iterators:
+  constexpr auto begin() requires std::ranges::range<const V> {
+    //std::cout << "take_view::begin() for simple views\n";
+    if constexpr (std::ranges::sized_range<const V>) {
+      if constexpr (std::ranges::random_access_range<const V>) {
+        return std::ranges::begin(base_);
+      } else {
+        auto sz = std::ranges::range_difference_t<const V>(size());
+        return std::counted_iterator(std::ranges::begin(base_), sz);
+      }
+    } else {
+      return std::counted_iterator(std::ranges::begin(base_), count_);
+    }
+  }
+  // - the const version returns const iterators:
   constexpr auto begin() const requires std::ranges::range<const V> {
-    std::cout << "take_view::begin() const\n";
+    //std::cout << "take_view::begin() const for simple views\n";
     if constexpr (std::ranges::sized_range<const V>) {
       if constexpr (std::ranges::random_access_range<const V>) {
         //return std::ranges::begin(base_);
@@ -186,6 +205,9 @@ class take_view : public std::ranges::view_interface<take_view<V>>
       return make_const_iterator(std::counted_iterator(std::ranges::begin(base_), count_));
     }
   }
+
+  // end(): no change (yet)
+  // - TODO: how to deal with sentinels in the const case?
   constexpr auto end() requires (!_intern::simple_view<V>) {
     if constexpr (std::ranges::sized_range<V>) {
       if constexpr (std::ranges::random_access_range<V>)
@@ -207,6 +229,7 @@ class take_view : public std::ranges::view_interface<take_view<V>>
       return sentinel<true>{std::ranges::end(base_)};
     }
   }
+
   constexpr auto size() requires std::ranges::sized_range<V> {
     auto n = std::ranges::size(base_);
     return std::ranges::min(n, static_cast<decltype(n)>(count_));
