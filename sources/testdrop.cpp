@@ -57,6 +57,9 @@ void testDropCache(const std::string& msg, auto&& lst, auto&& vLst)
   printUniversal("copy:     ",  vLst2);  // OK:      2 3 4 5
 }
 
+template<typename T, typename T2>
+concept SupportsAssign = requires (T x, T2 y) { x = y; };
+
 
 int main()
 {
@@ -125,5 +128,23 @@ int main()
     std::list lst{1, 2, 3, 4, 5};
     testDropCache("bel::views::drop() on list", lst, lst | bel::views::drop(2));
   }
+
+
+  // test const propagation:
+  // - usually we can modify elements:
+  auto&& dr0 =  coll2 | bel::views::drop(2);
+  dr0[0] = 42;     // OK
+  // - but not if view is const:
+  const auto& dr1 =  coll2 | bel::views::drop(2);
+  //dr1[0] = 42;     // ERROR
+  if constexpr (SupportsAssign<decltype(dr1[0]), int>) {     // ERROR
+    std::cerr << "TEST FAILED: can assign so const not propagated\n";
+  }
+  else {
+    std::cerr << "OK: can't assign, so const is propagated\n";
+  }
+  // - NOTE: a non-const copy of the view can modify elements again: 
+  auto dr2 = dr1;
+  dr2[0] = 42;     // !!!
 }
 
