@@ -68,7 +68,52 @@ Belle views can always iterate over elements even if the views are const:
     print(vec | bel::views::drop(2));    // OK
     print(lst | bel::views::drop(2));    // OK with belle views
 
-For more see in sources: testdrop.cpp, testtake.cpp, testfilter.cpp
+Belle views propagate const:
+
+    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+
+    const auto& vStd = vec | std::views::drop(2);
+    vStd[0] += 42;        // OOPS: modifies 1st element in vec
+
+    const auto& vBel = vec | bel::views::drop(2);
+    vBel[0] += 42;        // ERROR (good!)
+
+    auto vBel2 = vBel;    // NOTE: removes constness
+    vBel2[0] += 42;       // OK
+
+Belle views do not cache so that they operate as expected way later than defined:
+
+    std::vector vec{1, 2, 3, 4, 5};
+    auto biggerThan2 = [](auto v) { return v > 2; };
+
+    auto big2Std = vec | std::views::filter(biggerThan2);
+    printUniversal(big2Std);           // OK:  3 4 5
+    auto big2Bel = vec | bel::views::filter(biggerThan2);
+    print(big2Bel);                    // OK:  3 4 5
+    
+    vec.insert(vec.begin(), {9, 0, -1});
+    print(vec);                        // vec now: 9 0 -1 1 2 3 4 5
+
+    printUniversal(big2Std);           // OOPS:  -1 3 4 5
+    print(big2Bel);                    // OK:  9 3 4 5
+
+Note that without the first call of printUniversal() the second call would be correct.
+Thus, for standard views, a read iteration might change or veen invalidate later behavior.
+
+Belle views support concurrent read iterations for all views:
+
+    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+
+    auto vStd = vec | std::views::drop(2);
+    auto sum1 = std::reduce(std::execution::par,      // RUNTIME ERROR (possible data race)
+                            vStd.begin(), vStd.end(),
+                            0L);
+    auto vBel = vec | bel::views::drop(2);
+    auto sum2 = std::reduce(std::execution::par,      // OK
+                            vBel.begin(), vBel.end(),
+                            0L);
+
+For more examples, see in sources: testdrop.cpp, testtake.cpp, testfilter.cpp
 
 ## ToDo
 

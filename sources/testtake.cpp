@@ -106,4 +106,5 @@ int main()
   // - NOTE: a non-const copy of the view can modify elements again: 
   auto tr2 = tr1;
   tr2[0] = 42;     // !!!
+
 }

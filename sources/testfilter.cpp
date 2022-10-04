@@ -146,5 +146,25 @@ int main()
   auto tr2 = tr1;
   tr2.front() = 42;     // !!!
 
+  // example at README.md:
+  {
+    std::vector vec{1, 2, 3, 4, 5};
+    print(vec);
+
+    auto biggerThan2 = [](auto v) {
+      return v > 2;
+    };
+
+    auto big2Std = vec | std::views::filter(biggerThan2);
+    printUniversal("", big2Std);       // OK:  3 4 5
+    auto big2Bel = vec | bel::views::filter(biggerThan2);
+    print(big2Bel);                    // OK:  3 4 5
+    
+    vec.insert(vec.begin(), {9, 0, -1});
+    print(vec);                        // vec now: 9 0 -1 1 2 3 4 5
+
+    printUniversal("", big2Std);       // OOPS:  -1 3 4 5
+    print(big2Bel);                    // OK:  9 3 4 5
+  }
 }
 

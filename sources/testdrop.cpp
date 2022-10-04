@@ -147,5 +147,33 @@ int main()
   // - NOTE: a non-const copy of the view can modify elements again: 
   auto dr2 = dr1;
   dr2[0] = 42;     // !!!
+
+  // example at README.md:
+  {
+    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+    print(vec);
+    const auto& vStd = vec | std::views::drop(2);
+    vStd[0] += 42;        // OOPS: modifies 1st element in vec
+    print(vec);
+    const auto& vBel = vec | bel::views::drop(2);
+    //vBel[0] += 42;      // ERROR
+    auto vBel2 = vBel;    // NOTE: removes constness
+    vBel2[0] += 42;       // OK
+    print(vec);
+  }
+
+  // from README.md:
+  {
+    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+    auto vStd = vec | std::views::drop(2);
+    auto vBel = vec | bel::views::drop(2);
+
+    auto sum1 = std::reduce(std::execution::par,      // RUNTIME ERROR (possible data race)
+                            vStd.begin(), vStd.end(),
+                            0L);
+    auto sum2 = std::reduce(std::execution::par,      // OK
+                            vBel.begin(), vBel.end(),
+                            0L);
+  }
 }
 
