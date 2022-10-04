@@ -44,6 +44,17 @@ namespace _intern {
 
   template<bool _Const, typename _Tp>
     using maybe_const_t = std::conditional_t<_Const, const _Tp, _Tp>;
+
+  // might be missing:
+  template<std::indirectly_readable It>
+  using iter_const_reference_t = std::common_reference_t<const std::iter_value_t<It>&&, std::iter_reference_t<It>>;
+  template<std::ranges::range R>
+  using range_const_reference_t = iter_const_reference_t<std::ranges::iterator_t<R>>;
+  //template<input_iterator I>
+  //using const_iterator = see below ;
+  //  //1 Result: If I models constant-iterator , I. Otherwise, basic_const_iterator<I>.
+  template<std::ranges::range R>
+  using const_iterator_t = const_iterator<std::ranges::iterator_t<R>>;
 }
 
 } // namespace belleviews

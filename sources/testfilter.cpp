@@ -38,6 +38,10 @@ auto printAndAccum(auto&& coll)
   return sum;
 }
 
+template<typename T, typename T2>
+concept SupportsAssign = requires (T x, T2 y) { x = y; };
+
+
 int main()
 {
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};
@@ -76,8 +80,8 @@ int main()
   */
 
   //**** test const propagation:
-  /*
   std::array coll2{1, 2, 3, 4, 5, 6, 7, 8};
+  /*
   print(coll2);
 
   const auto& coll2_std_cref = coll2 | std::views::take(6);
@@ -92,5 +96,22 @@ int main()
   assert(std::is_const_v<std::remove_reference_t<decltype(*coll2_bel_cref.begin())>>);
   print(coll2);
   */
+
+  // test const propagation:
+  // - usually we can modify elements:
+  auto&& tr0 =  coll2 | bel::views::filter(notTimes3);
+  tr0.front() = 42;  // OK
+  // - but not if view is const:
+  const auto& tr1 =  coll2 | bel::views::filter(notTimes3);
+  //tr1.front() = 42;     // ERROR
+  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
+    std::cerr << "TEST FAILED: can assign so const not propagated\n";
+  }
+  else {
+    std::cerr << "OK: can't assign, so const is propagated\n";
+  }
+  // - NOTE: a non-const copy of the view can modify elements again: 
+  auto tr2 = tr1;
+  tr2.front() = 42;     // !!!
 }
 

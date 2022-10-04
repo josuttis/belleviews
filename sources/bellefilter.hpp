@@ -284,7 +284,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 
    private:
     friend filter_view;
-    using VIterT = std::ranges::iterator_t<V>;
+    using VIterT = _intern::const_iterator_t<V>;
     VIterT current_ = VIterT();  // exposition only
     const filter_view* filterViewPtr = nullptr;                         // exposition only
 
@@ -306,7 +306,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       return std::move(current_);
     }
 
-    constexpr const std::ranges::range_reference_t<V> operator*() const {
+    constexpr _intern::range_const_reference_t<V> operator*() const {
       return *current_;
     }
     constexpr VIterT operator->() const
@@ -400,6 +400,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   }
 
   constexpr Iterator begin() {
+    std::cout << "filter_view::begin()\n";
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
@@ -407,6 +408,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     return Iterator{this, std::move(it)};
   }
   constexpr ConstIterator begin() const {
+    std::cout << "filter_view::begin() const\n";
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
