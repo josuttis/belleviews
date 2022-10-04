@@ -98,7 +98,7 @@ Belle views do not cache so that they operate as expected way later than defined
     print(big2Bel);                    // OK:  9 3 4 5
 
 Note that without the first call of printUniversal() the second call would be correct.
-Thus, for standard views, a read iteration might change or veen invalidate later behavior.
+Thus, for standard views, a read iteration might change or even invalidate later behavior.
 
 Belle views support concurrent read iterations for all views:
 
