@@ -51,11 +51,11 @@ tricks.
 
 ## How to use Belle Views
 
-All you hav to do is to use the namespace bel::views instead of std::views.
+All you have to do is to use the namespace `bel::views` instead of `std::views`.
 
 ## Examples
 
-Belle views can always iterate over elements even if the views are const:
+Belle views can always iterate over elements even if the views are `const`:
 
     template<typename T>
     void print(const T& coll);           // print elements of a collection
@@ -68,7 +68,7 @@ Belle views can always iterate over elements even if the views are const:
     print(vec | bel::views::drop(2));    // OK
     print(lst | bel::views::drop(2));    // OK with belle views
 
-Belle views propagate const:
+Belle views propagate `const`:
 
     std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
 
@@ -97,8 +97,8 @@ Belle views do not cache so that they operate as expected way later than defined
     printUniversal(big2Std);           // OOPS:  -1 3 4 5
     print(big2Bel);                    // OK:  9 3 4 5
 
-Note that without the first call of printUniversal() the second call would be correct.
-Thus, for standard views, a read iteration might change or even invalidate later behavior.
+Note that without the first call of `printUniversal()` the second call would be correct.
+Thus, for standard views, even a pure reading iteration might change or even invalidate later behavior.
 
 Belle views support concurrent read iterations for all views:
 
