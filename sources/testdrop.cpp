@@ -101,20 +101,20 @@ int main()
 
 
   //**** test const propagation:
-  std::array coll2{1, 2, 3, 4, 5, 6, 7, 8};
-  print(coll2);
+  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
+  print(arr);
 
-  const auto& coll2_std_cref = coll2 | std::views::drop(2);
-  *coll2_std_cref.begin() += 100;           // OOPS: compiles 
+  const auto& arr_std_cref = arr | std::views::drop(2);
+  *arr_std_cref.begin() += 100;           // OOPS: compiles 
   // with array<const int, 8>:
   //   error: no match for 'operator+=' (operand types are 'const int' and 'int')
-  print(coll2);
+  print(arr);
 
-  const auto& coll2_bel_cref = coll2 | bel::views::take(6);
-  //*coll2_bel_cref.begin() += 100;   // ERROR (good)
+  const auto& arr_bel_cref = arr | bel::views::take(6);
+  //*arr_bel_cref.begin() += 100;   // ERROR (good)
                                       //  no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
-  assert(std::is_const_v<std::remove_reference_t<decltype(*coll2_bel_cref.begin())>>);
-  print(coll2);
+  assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
+  print(arr);
 
 
   //**** caching works as expected: 
@@ -134,20 +134,33 @@ int main()
 
   // test const propagation:
   // - usually we can modify elements:
-  auto&& dr0 =  coll2 | bel::views::drop(2);
+  auto&& dr0 =  arr | bel::views::drop(2);
   dr0[0] = 42;     // OK
+  static_assert(SupportsAssign<decltype(dr0[0]), int>);
   // - but not if view is const:
-  const auto& dr1 =  coll2 | bel::views::drop(2);
-  //dr1[0] = 42;     // ERROR
-  if constexpr (SupportsAssign<decltype(dr1[0]), int>) {     // ERROR
+  const auto& drConst =  arr | bel::views::drop(2);
+  //drConst[0] = 42;     // ERROR
+  if constexpr (SupportsAssign<decltype(drConst[0]), int>) {     // ERROR
     std::cerr << "TEST FAILED: can assign so const not propagated\n";
   }
   else {
     std::cerr << "OK: can't assign, so const is propagated\n";
   }
+  static_assert(!SupportsAssign<decltype(drConst[0]), int>);
   // - NOTE: a non-const copy of the view can modify elements again: 
-  auto dr2 = dr1;
+  auto dr2 = drConst;
   dr2[0] = 42;     // !!!
+  static_assert(SupportsAssign<decltype(dr2[0]), int>);
+
+  // const views should be common range if possible:
+  static_assert(std::ranges::common_range<decltype(arr)>);
+  static_assert(std::ranges::common_range<decltype(dr0)>);
+  //std::cout << typeid(drConst.begin()).name() << '\n';
+  //std::cout << typeid(drConst.end()).name() << '\n';
+  static_assert(std::ranges::common_range<decltype(drConst)>);
+  std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
+  const auto& drLst =  lst | bel::views::take(6);
+  static_assert(!std::ranges::common_range<decltype(drLst)>);
 
   // example at README.md:
   {
