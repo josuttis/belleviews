@@ -178,8 +178,6 @@ requires std::ranges::view<V> && std::is_object_v<Pred>
 class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 {
  private:
-  struct Sentinel;
-
   struct Iterator //: __detail::__filter_view_iter_cat<V>
   {
    private:
@@ -316,8 +314,9 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
 
     constexpr ConstIterator& operator++() {
+      VIterT end = std::ranges::end(filterViewPtr->base_);
       current_ = std::ranges::find_if(std::move(++current_),
-                                      std::ranges::end(filterViewPtr->base_),
+                                      end,
                                       std::ref(*filterViewPtr->pred_));
       return *this;
     }
@@ -379,6 +378,25 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       return y.equal(x);
     }
   };
+  class ConstSentinel {
+   private:
+     _intern::const_sentinel_t<V> end_ = _intern::const_sentinel_t<V>(); // exposition only
+
+     constexpr bool equal(const Iterator& i) const {
+       return i.current == end_;
+     }
+   public:
+    ConstSentinel() = default;
+    constexpr explicit ConstSentinel(filter_view& filterView)
+     : end_{std::ranges::end(filterView.base_)} {
+    }
+    constexpr _intern::const_sentinel_t<V> base() const {
+      return end_;
+    }
+    friend constexpr bool operator==(const ConstIterator& x, const ConstSentinel& y) {
+      return y.equal(x);
+    }
+  };
 
  private:
   V base_ = V();
@@ -411,14 +429,13 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   constexpr ConstIterator begin() const {
     //std::cout << "filter_view::begin() const\n";
     assert(pred_.has_value());
-    auto it = std::ranges::begin(base_);
-    //auto it = std::ranges::find_if(std::ranges::begin(base_),
-    //                               std::ranges::end(base_),
-    //                               //std::ref(*pred_));
-    //                               *pred_);
+    auto it = std::ranges::find_if(std::ranges::begin(base_),
+                                   std::ranges::end(base_),
+                                   std::ref(*pred_));
     return ConstIterator{this, std::move(it)};
     //return make_const_iterator(Iterator{this, std::move(it)});
   }
+
   constexpr auto end() {
     if constexpr (std::ranges::common_range<V>)
       return Iterator{this, std::ranges::end(base_)};
@@ -430,7 +447,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       return ConstIterator{this, std::ranges::end(base_)};
       //return make_const_iterator(Iterator{this, std::ranges::end(base_)});
     else
-      return Sentinel{this};
+      return ConstSentinel{this};
   }
 };
 
