@@ -1,4 +1,5 @@
 #include <iostream>
+#include <array>
 #include <vector>
 #include <list>
 #include <numeric>
@@ -94,17 +95,25 @@ int main()
   // - usually we can modify elements:
   auto&& tr0 =  coll2 | bel::views::take(6);
   tr0[0] = 42;     // OK
+  static_assert(SupportsAssign<decltype(tr0[0]), int>);
   // - but not if view is const:
   const auto& tr1 =  coll2 | bel::views::take(6);
   //tr1[0] = 42;     // ERROR
-  if constexpr (SupportsAssign<decltype(tr1[0]), int>) {     // ERROR
+  if constexpr (SupportsAssign<decltype(tr1[0]), int>) {     // should not be met
     std::cerr << "TEST FAILED: can assign so const not propagated\n";
   }
   else {
     std::cerr << "OK: can't assign, so const is propagated\n";
   }
+  static_assert(!SupportsAssign<decltype(tr1[0]), int>);
   // - NOTE: a non-const copy of the view can modify elements again: 
   auto tr2 = tr1;
   tr2[0] = 42;     // !!!
+  static_assert(SupportsAssign<decltype(tr2[0]), int>);
 
+  // const views should be common range if possible:
+  static_assert(std::ranges::common_range<decltype(tr1)>);
+  std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
+  const auto& trLst =  lst | bel::views::take(6);
+  static_assert(!std::ranges::common_range<decltype(trLst)>);
 }

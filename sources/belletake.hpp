@@ -211,7 +211,8 @@ class take_view : public std::ranges::view_interface<take_view<V>>
   constexpr auto end() requires (!_intern::simple_view<V>) {
     if constexpr (std::ranges::sized_range<V>) {
       if constexpr (std::ranges::random_access_range<V>)
-        return std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size());
+        //return std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size());
+        return make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size()));
       else
         return std::default_sentinel;
     } else {
@@ -221,8 +222,8 @@ class take_view : public std::ranges::view_interface<take_view<V>>
   constexpr auto end() const requires std::ranges::range<const V> {
     if constexpr (std::ranges::sized_range<const V>) {
       if constexpr (std::ranges::random_access_range<const V>)
-        return std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size());
-        //return make_const_iterator(std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size()));
+        //return std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size());
+        return make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size()));
       else
         return std::default_sentinel;
     } else {

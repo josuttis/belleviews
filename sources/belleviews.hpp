@@ -48,13 +48,29 @@ namespace _intern {
   // might be missing:
   template<std::indirectly_readable It>
   using iter_const_reference_t = std::common_reference_t<const std::iter_value_t<It>&&, std::iter_reference_t<It>>;
+
   template<std::ranges::range R>
   using range_const_reference_t = iter_const_reference_t<std::ranges::iterator_t<R>>;
   //template<input_iterator I>
   //using const_iterator = see below ;
-  //  //1 Result: If I models constant-iterator , I. Otherwise, basic_const_iterator<I>.
+  // Result: If I models constant-iterator , I. Otherwise, basic_const_iterator<I>.
+
+  template<std::indirectly_readable It>
+  using iter_const_rvalue_reference_t = std::common_reference_t<const std::iter_value_t<It>&&, std::iter_rvalue_reference_t<It>>;
+  template<std::ranges::range R>
+  using range_const_rvalue_reference_t = iter_const_rvalue_reference_t<std::ranges::iterator_t<R>>;
+
   template<std::ranges::range R>
   using const_iterator_t = const_iterator<std::ranges::iterator_t<R>>;
+
+  //template<class S>
+  //using const_sentinel = see below ;
+  // Result: If S models input_iterator, const_iterator<S>. Otherwise, S.
+  template<typename It>
+  using const_sentinel = decltype(make_const_sentinel(std::declval<It>()));
+
+  template<std::ranges::range R>
+  using const_sentinel_t = const_sentinel<std::ranges::sentinel_t<R>>;
 }
 
 } // namespace belleviews
