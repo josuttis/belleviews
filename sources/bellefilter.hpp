@@ -411,9 +411,11 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   constexpr ConstIterator begin() const {
     //std::cout << "filter_view::begin() const\n";
     assert(pred_.has_value());
-    auto it = std::ranges::find_if(std::ranges::begin(base_),
-                                   std::ranges::end(base_),
-                                   std::ref(*pred_));
+    auto it = std::ranges::begin(base_);
+    //auto it = std::ranges::find_if(std::ranges::begin(base_),
+    //                               std::ranges::end(base_),
+    //                               //std::ref(*pred_));
+    //                               *pred_);
     return ConstIterator{this, std::move(it)};
     //return make_const_iterator(Iterator{this, std::move(it)});
   }

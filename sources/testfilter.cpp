@@ -162,14 +162,18 @@ int main()
     printUniversal("", big2Std);       // OK:  3 4 5
     auto big2Bel = vec | bel::views::filter(biggerThan2);
     //TODO: doesn't compile with VC++:
-    //print(big2Bel);                    // OK:  3 4 5
-    
+#ifdef __GNUC__
+    print(big2Bel);                    // OK:  3 4 5
+#endif
+
     vec.insert(vec.begin(), {9, 0, -1});
     print(vec);                        // vec now: 9 0 -1 1 2 3 4 5
 
     printUniversal("", big2Std);       // OOPS:  -1 3 4 5
     //TODO: doesn't compile with VC++:
-    //print(big2Bel);                    // OK:  9 3 4 5
+#ifdef __GNUC__
+    print(big2Bel);                    // OK:  9 3 4 5
+#endif
   }
 }
 
