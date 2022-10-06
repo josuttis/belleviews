@@ -1,4 +1,5 @@
 #include <iostream>
+#include <array>
 #include <vector>
 #include <list>
 #include <numeric>
@@ -104,6 +105,7 @@ int main()
   std::cout << "sumOK: " << sumOK << '\n';
 
   //**** caching works as expected: 
+  {
   auto biggerThan2 = [](auto v) {
     return v > 2;
   };
@@ -122,6 +124,7 @@ int main()
   {
     std::list lst{1, 2, 3, 4, 5};
     testFilterCache("bel::views::filter(>2) on list", lst, lst | bel::views::filter(biggerThan2));
+  }
   }
   std::cout << '\n';
 
@@ -158,13 +161,15 @@ int main()
     auto big2Std = vec | std::views::filter(biggerThan2);
     printUniversal("", big2Std);       // OK:  3 4 5
     auto big2Bel = vec | bel::views::filter(biggerThan2);
-    print(big2Bel);                    // OK:  3 4 5
+    //TODO: doesn't compile with VC++:
+    //print(big2Bel);                    // OK:  3 4 5
     
     vec.insert(vec.begin(), {9, 0, -1});
     print(vec);                        // vec now: 9 0 -1 1 2 3 4 5
 
     printUniversal("", big2Std);       // OOPS:  -1 3 4 5
-    print(big2Bel);                    // OK:  9 3 4 5
+    //TODO: doesn't compile with VC++:
+    //print(big2Bel);                    // OK:  9 3 4 5
   }
 }
 

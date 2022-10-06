@@ -1,4 +1,5 @@
 #include <iostream>
+#include <array>
 #include <vector>
 #include <list>
 #include <numeric>
@@ -165,12 +166,12 @@ int main()
   // from README.md:
   {
     std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
-    auto vStd = vec | std::views::drop(2);
-    auto vBel = vec | bel::views::drop(2);
 
+    auto vStd = vec | std::views::drop(2);
     auto sum1 = std::reduce(std::execution::par,      // RUNTIME ERROR (possible data race)
                             vStd.begin(), vStd.end(),
                             0L);
+    auto vBel = vec | bel::views::drop(2);
     auto sum2 = std::reduce(std::execution::par,      // OK
                             vBel.begin(), vBel.end(),
                             0L);

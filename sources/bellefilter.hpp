@@ -6,6 +6,7 @@
 #include <concepts>
 #include <ranges>
 #include <cassert>
+#include <optional>
 
 namespace belleviews {
   namespace intern
@@ -38,7 +39,7 @@ namespace belleviews {
         noexcept(std::is_nothrow_copy_constructible_v<_Tp>)
         requires (!std::copyable<_Tp>)
         {
-          if (this != std::__addressof(__that))
+          if (this != std::addressof(__that))
             {
               if ((bool)__that)
                 this->emplace(*__that);
@@ -53,7 +54,7 @@ namespace belleviews {
         noexcept(std::is_nothrow_move_constructible_v<_Tp>)
         requires (!std::movable<_Tp>)
         {
-          if (this != std::__addressof(__that))
+          if (this != std::addressof(__that))
             {
               if ((bool)__that)
                 this->emplace(std::move(*__that));
@@ -346,7 +347,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       requires std::equality_comparable<VIterT> {
         return x.current_ == y.current_;
     }
-    friend constexpr std::ranges::range_rvalue_reference_t<V> iter_move(const ConstIterator& i)
+    friend constexpr _intern::range_const_rvalue_reference_t<V> iter_move(const ConstIterator& i)
       noexcept(noexcept(std::ranges::iter_move(i.current_))) {
         return std::ranges::iter_move(i.current_);
     }

@@ -406,6 +406,8 @@ CXXFLAGSWIN20 = $(WIN17FLAGS)
 WINLFLAGS = /std:c++latest /permissive- $(WINFLAGS)
 CXXFLAGSWINL = $(WINLFLAGS)
 .SUFFIXES: .winL
+.cpp.winL:
+	cl $(WINLFLAGS) $*.cpp /Fe$*
 .cxx.winL:
 	sed -f $(TTT2CPP) < $*.cxx > $*.cpp
 	cl $(WINLFLAGS) $*.cpp /Fe$*
