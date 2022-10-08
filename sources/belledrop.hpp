@@ -66,8 +66,8 @@ drop_view(R&&, std::ranges::range_difference_t<R>) -> drop_view<std::views::all_
 
 } // namespace belleviews
 
-template<typename _Tp>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::drop_view<_Tp>> = std::ranges::enable_borrowed_range<_Tp>;
+template<typename Rg>
+inline constexpr bool std::ranges::enable_borrowed_range<belleviews::drop_view<Rg>> = std::ranges::enable_borrowed_range<Rg>;
 
 namespace belleviews {
 

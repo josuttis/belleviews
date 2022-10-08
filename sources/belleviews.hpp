@@ -77,7 +77,10 @@ namespace _intern {
 
 #include "belletake.hpp"
 #include "belledrop.hpp"
+#ifdef BEL_BORROWED
+#include "bellefilterborrowed.hpp"
+#else
 #include "bellefilter.hpp"
-
+#endif
 
 #endif // BELLEVIEWS_HPP
