@@ -8,36 +8,50 @@
 #include <cassert>
 #include <optional>
 
+//*************************************************************
+// class belleviews::filter_view
+// 
+// A C++ filter_view
+// with the following benefits compared to C++ standard views
+// - Iterating is stateles
+//   - Can iterator over elements when the view is const
+//   - Supports concurrent iterations
+//   - Read iterations do not affect later statements
+// - Always propagates const
+// Because
+// - This filter view does never cache begin()
+// - This filter view yields const iterators when it is const
+//*************************************************************
 namespace belleviews {
   namespace intern
   {
-    template<typename _Tp>
-      concept __boxable = std::copy_constructible<_Tp> && std::is_object_v<_Tp>;
+    template<typename V>
+      concept boxable = std::copy_constructible<V> && std::is_object_v<V>;
 
-    template<__boxable _Tp>
-      struct __box : std::optional<_Tp>
+    template<boxable V>
+      struct __box : std::optional<V>
       {
-        using std::optional<_Tp>::optional;
+        using std::optional<V>::optional;
 
         constexpr
         __box()
-        noexcept(std::is_nothrow_default_constructible_v<_Tp>)
-        requires std::default_initializable<_Tp>
-        : std::optional<_Tp>{std::in_place}
+        noexcept(std::is_nothrow_default_constructible_v<V>)
+        requires std::default_initializable<V>
+        : std::optional<V>{std::in_place}
         { }
 
         __box(const __box&) = default;
         __box(__box&&) = default;
 
-        using std::optional<_Tp>::operator=;
+        using std::optional<V>::operator=;
 
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 3477. Simplify constraints for semiregular-box
         // 3572. copyable-box should be fully constexpr
         constexpr __box&
         operator=(const __box& __that)
-        noexcept(std::is_nothrow_copy_constructible_v<_Tp>)
-        requires (!std::copyable<_Tp>)
+        noexcept(std::is_nothrow_copy_constructible_v<V>)
+        requires (!std::copyable<V>)
         {
           if (this != std::addressof(__that))
             {
@@ -51,8 +65,8 @@ namespace belleviews {
 
         constexpr __box&
         operator=(__box&& __that)
-        noexcept(std::is_nothrow_move_constructible_v<_Tp>)
-        requires (!std::movable<_Tp>)
+        noexcept(std::is_nothrow_move_constructible_v<V>)
+        requires (!std::movable<V>)
         {
           if (this != std::addressof(__that))
             {
@@ -408,8 +422,8 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
    = default;
 
   constexpr
-  filter_view(V __base, Pred __pred)
-   : base_(std::move(__base)), pred_(std::move(__pred)) {
+  filter_view(V bs, Pred prd)
+   : base_(std::move(bs)), pred_(std::move(prd)) {
   }
 
   constexpr V base() const& requires std::copy_constructible<V> { return base_; }
@@ -456,13 +470,17 @@ filter_view(R&&, Pred) -> filter_view<std::views::all_t<R>, Pred>;
 
 } // namespace belleviews
 
-// TAKE OPEN:
-//
-/*???
-template<typename _Tp>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<_Tp>> = std::ranges::enable_borrowed_range<_Tp>;
-*/
+// NO BORROWED VIEW:
+//template<typename V>
+//inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<V>> = std::ranges::enable_borrowed_range<V>;
 
+
+//*************************************************************
+// belleviews::filter()
+// bel::views::filter()
+// 
+// A C++ filter_view adaptor for the belleviews::filter_view
+//*************************************************************
 namespace belleviews {
 
 namespace _intern {
@@ -471,7 +489,7 @@ namespace _intern {
 }
 
 struct _Filter {
-   // for: belleviews::filter_view{coll, isequal}
+   // for:  bel::views::filter(rg, pred)
    template<std::ranges::viewable_range Rg, typename Pred>
    requires _intern::can_filter_view<Rg, Pred>
    constexpr auto
@@ -479,7 +497,7 @@ struct _Filter {
      return filter_view{std::forward<Rg>(rg), std::forward<Pred>(pred)};
    }
 
-   // for: coll | belleviews::filter(isequal)
+   // for:  rg | belleviews::filter(pred)
    template<typename T>
    struct PartialFilter {
      T pred;
