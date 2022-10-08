@@ -314,7 +314,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
 
     constexpr ConstIterator& operator++() {
-      VIterT end = std::ranges::end(filterViewPtr->base_);
+      auto end = std::ranges::end(filterViewPtr->base_);
       current_ = std::ranges::find_if(std::move(++current_),
                                       end,
                                       std::ref(*filterViewPtr->pred_));
@@ -364,12 +364,12 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
      std::ranges::sentinel_t<V> end_ = std::ranges::sentinel_t<V>(); // exposition only
 
      constexpr bool equal(const Iterator& i) const {
-       return i.current == end_;
+       return i.current_ == end_;
      }
    public:
     Sentinel() = default;
-    constexpr explicit Sentinel(filter_view& filterView)
-     : end_{std::ranges::end(filterView.base_)} {
+    constexpr explicit Sentinel(filter_view* filterViewPtr)
+     : end_{std::ranges::end(filterViewPtr->base_)} {
     }
     constexpr std::ranges::sentinel_t<V> base() const {
       return end_;
@@ -382,13 +382,13 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
    private:
      _intern::const_sentinel_t<V> end_ = _intern::const_sentinel_t<V>(); // exposition only
 
-     constexpr bool equal(const Iterator& i) const {
-       return i.current == end_;
+     constexpr bool equal(const ConstIterator& i) const {
+       return i.current_ == end_;
      }
    public:
     ConstSentinel() = default;
-    constexpr explicit ConstSentinel(filter_view& filterView)
-     : end_{std::ranges::end(filterView.base_)} {
+    constexpr explicit ConstSentinel(const filter_view* filterViewPtr)
+     : end_{std::ranges::end(filterViewPtr->base_)} {
     }
     constexpr _intern::const_sentinel_t<V> base() const {
       return end_;

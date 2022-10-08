@@ -101,8 +101,8 @@ int main()
   //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
   //std::cout << "sumUB: " << sumUB << '\n';
   //auto sumOK = printAndAccum(v3);           // ERROR
-  auto sumOK = printAndAccum(v3 | std::views::common);           // OK
-  std::cout << "sumOK: " << sumOK << '\n';
+  //auto sumOK = printAndAccum(v3 | std::views::common);           // OK
+  //std::cout << "sumOK: " << sumOK << '\n';
 
   //**** caching works as expected: 
   {
@@ -135,19 +135,19 @@ int main()
   // test const propagation:
   // - usually we can modify elements:
   auto&& tr0 =  coll2 | bel::views::filter(notTimes3);
-  tr0.front() = 42;  // OK
+//  tr0.front() = 42;  // OK
   // - but not if view is const:
   const auto& tr1 =  coll2 | bel::views::filter(notTimes3);
   //tr1.front() = 42;     // ERROR
-  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
-    std::cerr << "TEST FAILED: can assign so const not propagated\n";
-  }
-  else {
-    std::cerr << "OK: can't assign, so const is propagated\n";
-  }
+//  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
+//    std::cerr << "TEST FAILED: can assign so const not propagated\n";
+//  }
+//  else {
+//    std::cerr << "OK: can't assign, so const is propagated\n";
+//  }
   // - NOTE: a non-const copy of the view can modify elements again: 
   auto tr2 = tr1;
-  tr2.front() = 42;     // !!!
+//  tr2.front() = 42;     // !!!
 
   // example at README.md:
   {
@@ -170,6 +170,28 @@ int main()
     printUniversal("", big2Std);       // OOPS:  -1 3 4 5
     //TODO: doesn't compile with VC++:
     print(big2Bel);                    // OK:  9 3 4 5
+  }
+
+  // test with common and non-common range:
+  {
+    std::cout << "--- test filter_view on common range:\n"; 
+    auto notTimes3 = [](auto v) { return v % 3 != 0; };
+    auto vCommon = std::views::iota(1, 10);
+    auto vfCommon = vCommon | bel::views::filter(notTimes3);
+    print(vCommon);
+    print(vfCommon);
+    static_assert(std::ranges::common_range<decltype(vCommon)>);
+    static_assert(std::ranges::common_range<decltype(vfCommon)>);
+  }
+  {
+    std::cout << "--- test filter_view on non-common range:\n"; 
+    auto notTimes3 = [](auto v) { return v % 3 != 0; };
+    auto vNonCommon = std::views::iota(1, 10L);
+    auto vfNonCommon = vNonCommon | bel::views::filter(notTimes3);
+    print(vNonCommon);
+    print(vfNonCommon);
+    static_assert(!std::ranges::common_range<decltype(vNonCommon)>);
+    static_assert(!std::ranges::common_range<decltype(vfNonCommon)>);
   }
 }
 
