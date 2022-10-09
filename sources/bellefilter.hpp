@@ -211,6 +211,10 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     using VIterT = std::ranges::iterator_t<V>;
     VIterT current_ = VIterT();  // exposition only
     filter_view* filterViewPtr = nullptr;                         // exposition only
+    //V base_ = V();   // no def constr for ref view
+    std::optional<V> base_ = {};
+    //[[no_unique_address]] intern::box<Pred> pred_;
+    Pred pred_;
 
    public:
     //using iterator_concept = see below ;
@@ -300,6 +304,10 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     using VIterT = _intern::const_iterator_t<V>;
     VIterT current_ = VIterT();  // exposition only
     const filter_view* filterViewPtr = nullptr;                         // exposition only
+    //V base_ = V();   // no def constr for ref view
+    std::optional<V> base_ = {};
+    //[[no_unique_address]] intern::box<Pred> pred_;
+    Pred pred_;
 
    public:
     //using iterator_concept = see below ;
@@ -329,9 +337,13 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 
     constexpr ConstIterator& operator++() {
       auto end = std::ranges::end(filterViewPtr->base_);
-      current_ = std::ranges::find_if(std::move(++current_),
-                                      end,
-                                      std::ref(*filterViewPtr->pred_));
+      //current_ = std::ranges::find_if(std::move(++current_),
+      //                                end,
+      //                                std::ref(*filterViewPtr->pred_));
+      do {
+        ++current_;
+      }
+      while (current_ != end && !std::invoke(*filterViewPtr->pred_, *current_));
       return *this;
     }
     constexpr void operator++(int) {

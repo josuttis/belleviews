@@ -21,7 +21,6 @@
 // Because
 // - This filter view does never cache begin()
 // - This filter view yields const iterators when it is const
-// - Iterators store the predicate locally
 //*************************************************************
 namespace belleviews {
   namespace intern
@@ -211,9 +210,11 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     friend filter_view;
     using VIterT = std::ranges::iterator_t<V>;
     VIterT current_ = VIterT();  // exposition only
-    //filter_view* filterViewPtr = nullptr;                         // exposition only
-    V base_ = V();
-    //[[no_unique_address]] intern::box<Pred> pred_;
+    // instead of:
+    //filter_view* filterViewPtr = nullptr;             // exposition only
+    // we have
+    std::optional<V> optBase_ = {};                     // optional because view might not be default constructible
+                                                        // and iterators should be semiregular
     Pred pred_;
 
    public:
@@ -224,7 +225,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     Iterator() requires std::default_initializable<VIterT> = default;  // requires not in standard
 
     constexpr Iterator(filter_view* par, VIterT cur)
-     : current_{std::move(cur)}, base_{par->base_}, pred_{*par->pred_} {
+     : current_(std::move(cur)), optBase_(par->base_), pred_(*par->pred_) {
     }
 
     constexpr const VIterT& base() const& noexcept {
@@ -243,9 +244,14 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
 
     constexpr Iterator& operator++() {
-      current_ = std::ranges::find_if(std::move(++current_),
-                                      std::ranges::end(base_),
-                                      pred_);
+      //current_ = std::ranges::find_if(std::move(++current_),
+      //                                std::ranges::end(filterViewPtr->base_),
+      //                                std::ref(*filterViewPtr->pred_));
+      auto end = std::ranges::end(*optBase_);
+      do {
+        ++current_;
+      }
+      while (current_ != end && !std::invoke(pred_, *current_));
       return *this;
     }
     constexpr void operator++(int) {
@@ -303,9 +309,11 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     friend filter_view;
     using VIterT = _intern::const_iterator_t<V>;
     VIterT current_ = VIterT();  // exposition only
-    //const filter_view* filterViewPtr = nullptr;                         // exposition only
-    std::optional<V> base_ = {};
-    //[[no_unique_address]] intern::box<Pred> pred_;
+    // instead of:
+    //const filter_view* filterViewPtr = nullptr;       // exposition only
+    // we have
+    std::optional<V> optBase_ = {};                     // optional because view might not be default constructible
+                                                        // and iterators should be semiregular
     Pred pred_;
 
    public:
@@ -313,20 +321,18 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     //using iterator_category = see below ;
     using value_type = std::ranges::range_value_t<V>;
     using difference_type = std::ranges::range_difference_t<V>;
-    ConstIterator() {} //requires std::default_initializable<VIterT> = default;  // requires not in standard
+    ConstIterator() requires std::default_initializable<VIterT> = default;  // requires not in standard
 
     constexpr ConstIterator(const filter_view* par, VIterT cur)
-     : current_{std::move(cur)}, base_{par->base_}, pred_{*par->pred_} {
-        std::cout << " Constr range: " << std::ranges::range<decltype(std::ranges::subrange{std::ranges::end(*base_), cur})> << '\n';
-        std::cout << " Constr range: " << std::ranges::range<decltype(std::ranges::subrange{cur, std::ranges::end(*base_)})> << '\n';
+     : current_(std::move(cur)), optBase_(par->base_), pred_(*par->pred_) {
     }
 
-    //constexpr const VIterT& base() const& noexcept {
-    //  return current_;
-    //}
-    //constexpr VIterT base() && {
-    //  return std::move(current_);
-    //}
+    constexpr const VIterT& base() const& noexcept {
+      return current_;
+    }
+    constexpr VIterT base() && {
+      return std::move(current_);
+    }
 
     constexpr _intern::range_const_reference_t<V> operator*() const {
       return *current_;
@@ -337,10 +343,15 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
 
     constexpr ConstIterator& operator++() {
-      auto end = std::ranges::end(base_);
-      current_ = std::ranges::find_if(std::move(++current_),
-                                      end,
-                                      pred_);
+      auto end = std::ranges::end(*optBase_);
+      //current_ = std::ranges::find_if(std::move(++current_),
+      //                                end,
+      //                                std::ref(*filterViewPtr->pred_));
+      do {
+        ++current_;
+      }
+      while (current_ != end && !std::invoke(pred_, *current_));
+      // CHECK for end here??? BUT can't compare current_ with end of base_
       return *this;
     }
     constexpr void operator++(int) {
@@ -357,6 +368,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
         --current_;
       }
       while (!std::invoke(pred_, *current_));
+      // CHECK for begin here???
       return *this;
     }
     constexpr ConstIterator operator--(int) requires std::ranges::bidirectional_range<V> {
@@ -401,7 +413,6 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       return y.equal(x);
     }
   };
-
   class ConstSentinel {
    private:
      _intern::const_sentinel_t<V> end_ = _intern::const_sentinel_t<V>(); // exposition only
@@ -443,38 +454,34 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   }
 
   constexpr Iterator begin() {
-    std::cout << "filter_view::begin()\n";
+    //std::cout << "filter_view::begin()\n";
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
-                                   *pred_);
-    std::cout << " range: " << std::ranges::range<decltype(std::ranges::subrange{it, std::ranges::end(base_)})> << '\n';
+                                   std::ref(*pred_));
     return Iterator{this, std::move(it)};
   }
   constexpr ConstIterator begin() const {
-    std::cout << "filter_view::begin() const\n";
+    //std::cout << "filter_view::begin() const\n";
     assert(pred_.has_value());
     auto it = std::ranges::find_if(std::ranges::begin(base_),
                                    std::ranges::end(base_),
-                                   *pred_);
-    std::cout << " range: " << std::ranges::range<decltype(std::ranges::subrange{it, std::ranges::end(base_)})> << '\n';
+                                   std::ref(*pred_));
     return ConstIterator{this, std::move(it)};
     //return make_const_iterator(Iterator{this, std::move(it)});
   }
 
   constexpr auto end() {
-    std::cout << "filter_view::end() \n";
-    //if constexpr (std::ranges::common_range<V>)
-    //  return Iterator{this, std::ranges::end(base_)};
-    //else
+    if constexpr (std::ranges::common_range<V>)
+      return Iterator{this, std::ranges::end(base_)};
+    else
       return Sentinel{this};
   }
   constexpr auto end() const {
-    std::cout << "filter_view::end() const\n";
-    //if constexpr (std::ranges::common_range<V>)
-    //  return ConstIterator{this, std::ranges::end(base_)};
+    if constexpr (std::ranges::common_range<V>)
+      return ConstIterator{this, std::ranges::end(base_)};
       //return make_const_iterator(Iterator{this, std::ranges::end(base_)});
-    //else
+    else
       return ConstSentinel{this};
   }
 };
@@ -484,15 +491,10 @@ filter_view(R&&, Pred) -> filter_view<std::views::all_t<R>, Pred>;
 
 } // namespace belleviews
 
-template<typename Rg, typename Pred>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<Rg, Pred>> = std::ranges::enable_borrowed_range<Rg, Pred>;
+// BORROWED VIEW:
+template<typename V, typename Pred>
+inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<V, Pred>> = true;
 
-// TAKE OPEN:
-//
-/*???
-template<typename _Tp>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<_Tp>> = std::ranges::enable_borrowed_range<_Tp>;
-*/
 
 //*************************************************************
 // belleviews::filter()

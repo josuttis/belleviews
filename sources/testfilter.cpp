@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+//#include "string.hpp"   // special string to find use of freed memory
 #include <array>
 #include <vector>
 #include <list>
@@ -129,25 +131,25 @@ int main()
   std::cout << '\n';
 
   //**** test const propagation:
-  std::array coll2{1, 2, 3, 4, 5, 6, 7, 8};
-  print(coll2);
+  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
+  print(arr);
 
   // test const propagation:
   // - usually we can modify elements:
-  auto&& tr0 =  coll2 | bel::views::filter(notTimes3);
-//  tr0.front() = 42;  // OK
+  auto&& tr0 =  arr | bel::views::filter(notTimes3);
+  tr0.front() = 42;  // OK
   // - but not if view is const:
-  const auto& tr1 =  coll2 | bel::views::filter(notTimes3);
+  const auto& tr1 =  arr | bel::views::filter(notTimes3);
   //tr1.front() = 42;     // ERROR
-//  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
-//    std::cerr << "TEST FAILED: can assign so const not propagated\n";
-//  }
-//  else {
-//    std::cerr << "OK: can't assign, so const is propagated\n";
-//  }
+  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
+    std::cerr << "TEST FAILED: can assign so const not propagated\n";
+  }
+  else {
+    std::cerr << "OK: can't assign, so const is propagated\n";
+  }
   // - NOTE: a non-const copy of the view can modify elements again: 
   auto tr2 = tr1;
-//  tr2.front() = 42;     // !!!
+  tr2.front() = 42;     // !!!
 
   // example at README.md:
   {
@@ -175,7 +177,6 @@ int main()
   // test with common and non-common range:
   {
     std::cout << "--- test filter_view on common range:\n"; 
-    auto notTimes3 = [](auto v) { return v % 3 != 0; };
     auto vCommon = std::views::iota(1, 10);
     auto vfCommon = vCommon | bel::views::filter(notTimes3);
     print(vCommon);
@@ -185,7 +186,6 @@ int main()
   }
   {
     std::cout << "--- test filter_view on non-common range:\n"; 
-    auto notTimes3 = [](auto v) { return v % 3 != 0; };
     auto vNonCommon = std::views::iota(1, 10L);
     auto vfNonCommon = vNonCommon | bel::views::filter(notTimes3);
     print(vNonCommon);
@@ -193,5 +193,25 @@ int main()
     static_assert(!std::ranges::common_range<decltype(vNonCommon)>);
     static_assert(!std::ranges::common_range<decltype(vfNonCommon)>);
   }
+
+  std::cout << "sizeof iterator: \n"
+            << " - for array:  " << sizeof(arr.begin()) << '\n'
+            << " - for filter: " << sizeof(tr0.begin()) << '\n';
+
+  // filter view is not a borrowed range:
+  auto getVec = [] {
+    return std::vector<std::string>{"one", "two", "three"};
+  };
+  auto vec = getVec();
+  auto vVecStd = vec | std::views::filter([](const auto& s){return s[0] == 't';});
+  static_assert(!std::ranges::borrowed_range<decltype(vVecStd)>);
+  auto vVecBel = vec | bel::views::filter([](const auto& s){return s[0] == 't';});
+  static_assert(!std::ranges::borrowed_range<decltype(vVecBel)>);
+  //auto pos2 = std::views::filter(vec, [](const auto& s){return s[0] == 't';}).begin();  // OOPS
+  //auto pos3 = std::views::filter(vec, [](const auto& s){return s[0] == 'o';}).begin();  // to overwrite memory
+  //std::cout << * -- ++pos2 << '\n';                                                     // UB
+  //auto pos4 = bel::views::filter(vec, [](const auto& s){return s[0] == 't';}).begin();  // OK
+  //auto pos5 = bel::views::filter(vec, [](const auto& s){return s[0] == 'o';}).begin();  // to overwrite memory
+  //std::cout << * -- ++pos5 << '\n';                                                     // OK
 }
 
