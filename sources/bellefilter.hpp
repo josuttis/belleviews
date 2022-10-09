@@ -29,49 +29,49 @@ namespace belleviews {
       concept boxable = std::copy_constructible<V> && std::is_object_v<V>;
 
     template<boxable V>
-      struct __box : std::optional<V>
+      struct box : std::optional<V>
       {
         using std::optional<V>::optional;
 
         constexpr
-        __box()
+        box()
         noexcept(std::is_nothrow_default_constructible_v<V>)
         requires std::default_initializable<V>
         : std::optional<V>{std::in_place}
         { }
 
-        __box(const __box&) = default;
-        __box(__box&&) = default;
+        box(const box&) = default;
+        box(box&&) = default;
 
         using std::optional<V>::operator=;
 
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 3477. Simplify constraints for semiregular-box
         // 3572. copyable-box should be fully constexpr
-        constexpr __box&
-        operator=(const __box& __that)
+        constexpr box&
+        operator=(const box& that)
         noexcept(std::is_nothrow_copy_constructible_v<V>)
         requires (!std::copyable<V>)
         {
-          if (this != std::addressof(__that))
+          if (this != std::addressof(that))
             {
-              if ((bool)__that)
-                this->emplace(*__that);
+              if ((bool)that)
+                this->emplace(*that);
               else
                 this->reset();
             }
           return *this;
         }
 
-        constexpr __box&
-        operator=(__box&& __that)
+        constexpr box&
+        operator=(box&& that)
         noexcept(std::is_nothrow_move_constructible_v<V>)
         requires (!std::movable<V>)
         {
-          if (this != std::addressof(__that))
+          if (this != std::addressof(that))
             {
-              if ((bool)__that)
-                this->emplace(std::move(*__that));
+              if ((bool)that)
+                this->emplace(std::move(*that));
               else
                 this->reset();
             }
@@ -80,7 +80,7 @@ namespace belleviews {
       };
   } //namespace intern
 } //namespace belleviews {
-// TODO: optimize __box as in gcc
+// TODO: optimize box as in gcc (__box there)
 
 
 namespace belleviews {
@@ -176,7 +176,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   V base_ = V();                 // exposition only
   //semiregular-box<Pred> pred_;   // exposition only
   // TODO: semiregular box:
-  [[no_unique_address]] intern::__box<Pred> pred_;
+  [[no_unique_address]] intern::box<Pred> pred_;
   // 24.7.4.3, class filter_view::iterator
   //above: class iterator;                // exposition only
   // 24.7.4.4, class filter_view::sentinel
@@ -248,9 +248,9 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       ++*this;
     }
     constexpr Iterator operator++(int) requires std::ranges::forward_range<V> {
-      auto __tmp = *this;
+      auto tmp = *this;
       ++*this;
-      return __tmp;
+      return tmp;
     }
 
     constexpr Iterator& operator--() requires std::ranges::bidirectional_range<V> {
@@ -338,9 +338,9 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       ++*this;
     }
     constexpr ConstIterator operator++(int) requires std::ranges::forward_range<V> {
-      auto __tmp = *this;
+      auto tmp = *this;
       ++*this;
-      return __tmp;
+      return tmp;
     }
 
     constexpr ConstIterator& operator--() requires std::ranges::bidirectional_range<V> {
@@ -414,7 +414,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 
  private:
   V base_ = V();
-  [[no_unique_address]] intern::__box<Pred> pred_;
+  [[no_unique_address]] intern::box<Pred> pred_;
   //[[no_unique_address]] __detail::_CachedPosition<V> _M_cached_begin;
 
  public:
