@@ -7,6 +7,17 @@
 #include <ranges>
 #include <cassert>
 
+//*************************************************************
+// class belleviews::drop_view
+// 
+// A C++ filter_view
+// with the following benefits compared to C++ standard views
+// - Always propagates const
+// Because
+// - This filter view yields const iterators when it is const
+// OPEN/TODO:
+// - ...
+//*************************************************************
 namespace belleviews {
 
 template<std::ranges::view V>
@@ -66,9 +77,17 @@ drop_view(R&&, std::ranges::range_difference_t<R>) -> drop_view<std::views::all_
 
 } // namespace belleviews
 
+// borrowed if underlying range is borrows (as with std drop_view):
 template<typename Rg>
 inline constexpr bool std::ranges::enable_borrowed_range<belleviews::drop_view<Rg>> = std::ranges::enable_borrowed_range<Rg>;
 
+
+//*************************************************************
+// belleviews::drop()
+// bel::views::drop()
+// 
+// A C++ drop_view adaptor for the belleviews::drop_view
+//*************************************************************
 namespace belleviews {
 
 namespace _intern {

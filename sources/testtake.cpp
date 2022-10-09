@@ -116,4 +116,18 @@ int main()
   std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
   const auto& trLst =  lst | bel::views::take(6);
   static_assert(!std::ranges::common_range<decltype(trLst)>);
+
+  // bel take view IS a borrowed range if the underlying range is (same as in std take view):
+  auto getVec = [] {
+    return std::vector<std::string>{"one", "two", "three"};
+  };
+  auto vec = getVec();
+  auto vVecStd = vec | std::views::take(6);
+  static_assert(std::ranges::borrowed_range<decltype(vVecStd)>);
+  auto vVecBel = vec | bel::views::take(6);
+  static_assert(std::ranges::borrowed_range<decltype(vVecBel)>);
+  auto vTmpVecStd = getVec() | std::views::take(6);
+  static_assert(!std::ranges::borrowed_range<decltype(vTmpVecStd)>);
+  auto vTmpVecBel = getVec() | bel::views::take(6);
+  static_assert(!std::ranges::borrowed_range<decltype(vTmpVecBel)>);
 }

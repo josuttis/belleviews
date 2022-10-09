@@ -7,6 +7,17 @@
 #include <ranges>
 #include <cassert>
 
+//*************************************************************
+// class belleviews::take_view
+// 
+// A C++ filter_view
+// with the following benefits compared to C++ standard views
+// - Always propagates const
+// Because
+// - This filter view yields const iterators when it is const
+// OPEN/TODO:
+// - ...
+//*************************************************************
 namespace belleviews {
 
   /* STD:
@@ -111,30 +122,30 @@ class take_view : public std::ranges::view_interface<take_view<V>>
 {
  private:
   template<bool IsConst>
-  class sentinel {
+  class Sentinel {
     private:
-      using Base = _intern::maybe_const_t<IsConst, V>; // exposition only
+      using Base = _intern::maybe_const_t<IsConst, V>;  // exposition only
       template<bool OtherConst>
-      using CI = std::counted_iterator<std::ranges::iterator_t<_intern::maybe_const_t<OtherConst, V>>>; // exposition only
-      std::ranges::sentinel_t<Base > end_ = std::ranges::sentinel_t<Base >(); // exposition only
+      using CI = std::counted_iterator<std::ranges::iterator_t<_intern::maybe_const_t<OtherConst, V>>>;  // exposition only
+      std::ranges::sentinel_t<Base> end_ = std::ranges::sentinel_t<Base >();  // exposition only
     public:
-      sentinel() = default;
-      constexpr explicit sentinel(std::ranges::sentinel_t<Base> end)
+      Sentinel() = default;
+      constexpr explicit Sentinel(std::ranges::sentinel_t<Base> end)
        : end_(end) {
       }
-      constexpr sentinel(sentinel<!IsConst> s)
+      constexpr Sentinel(Sentinel<!IsConst> s)
         requires IsConst && std::convertible_to<std::ranges::sentinel_t<V>, std::ranges::sentinel_t<Base >>
        : end_{std::move(s.end_)} {
       }
 
       constexpr std::ranges::sentinel_t<Base> base() const;
 
-      friend constexpr bool operator==(const CI <IsConst>& y, const sentinel & x) {
+      friend constexpr bool operator==(const CI <IsConst>& y, const Sentinel & x) {
         return y.count() == 0 || y.base() == x.end_;
       }
       template<bool OtherConst = !IsConst>
       requires std::sentinel_for<std::ranges::sentinel_t<Base>, std::ranges::iterator_t<_intern::maybe_const_t<OtherConst, V>>>
-      friend constexpr bool operator==(const CI <OtherConst>& y, const sentinel & x) {
+      friend constexpr bool operator==(const CI <OtherConst>& y, const Sentinel & x) {
         return y.count() == 0 || y.base() == x.end_;
       }
 
@@ -145,7 +156,7 @@ class take_view : public std::ranges::view_interface<take_view<V>>
   V base_ = V(); // exposition only
   std::ranges::range_difference_t<V> count_ = 0; // exposition only
   // 26.7.10.3, class template take_view::sentinel
-  //above: template<bool> class sentinel ; // exposition only
+  //above: template<bool> class Sentinel ; // exposition only
 
  public:
   take_view() requires std::default_initializable<V> = default;
@@ -164,11 +175,13 @@ class take_view : public std::ranges::view_interface<take_view<V>>
     if constexpr (std::ranges::sized_range<V>) {
       if constexpr (std::ranges::random_access_range<V>) {
         return std::ranges::begin(base_);
-      } else {
+      }
+      else {
         auto sz = std::ranges::range_difference_t<V>(size());
         return std::counted_iterator(std::ranges::begin(base_), sz);
       }
-    } else {
+    }
+    else {
       return std::counted_iterator(std::ranges::begin(base_), count_);
     }
   }
@@ -180,11 +193,13 @@ class take_view : public std::ranges::view_interface<take_view<V>>
     if constexpr (std::ranges::sized_range<const V>) {
       if constexpr (std::ranges::random_access_range<const V>) {
         return std::ranges::begin(base_);
-      } else {
+      } 
+      else {
         auto sz = std::ranges::range_difference_t<const V>(size());
         return std::counted_iterator(std::ranges::begin(base_), sz);
       }
-    } else {
+    } 
+    else {
       return std::counted_iterator(std::ranges::begin(base_), count_);
     }
   }
@@ -195,12 +210,14 @@ class take_view : public std::ranges::view_interface<take_view<V>>
       if constexpr (std::ranges::random_access_range<const V>) {
         //return std::ranges::begin(base_);
         return make_const_iterator(std::ranges::begin(base_));
-      } else {
+      }
+      else {
         auto sz = std::ranges::range_difference_t<const V>(size());
         //return std::counted_iterator(std::ranges::begin(base_), sz);
         return make_const_iterator(std::counted_iterator(std::ranges::begin(base_), sz));
       }
-    } else {
+    } 
+    else {
       //return std::counted_iterator(std::ranges::begin(base_), count_);
       return make_const_iterator(std::counted_iterator(std::ranges::begin(base_), count_));
     }
@@ -210,24 +227,30 @@ class take_view : public std::ranges::view_interface<take_view<V>>
   // - TODO: how to deal with sentinels in the const case?
   constexpr auto end() requires (!_intern::simple_view<V>) {
     if constexpr (std::ranges::sized_range<V>) {
-      if constexpr (std::ranges::random_access_range<V>)
+      if constexpr (std::ranges::random_access_range<V>) {
         //return std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size());
         return make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size()));
-      else
+      }
+      else {
         return std::default_sentinel;
-    } else {
-      return sentinel<false>{std::ranges::end(base_)};
+      }
+    }
+    else {
+      return Sentinel<false>{std::ranges::end(base_)};
     }
   }
   constexpr auto end() const requires std::ranges::range<const V> {
     if constexpr (std::ranges::sized_range<const V>) {
-      if constexpr (std::ranges::random_access_range<const V>)
+      if constexpr (std::ranges::random_access_range<const V>) {
         //return std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size());
         return make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size()));
-      else
+      }
+      else {
         return std::default_sentinel;
-    } else {
-      return sentinel<true>{std::ranges::end(base_)};
+      }
+    }
+    else {
+      return Sentinel<true>{std::ranges::end(base_)};
     }
   }
 
@@ -246,9 +269,17 @@ take_view(R&&, std::ranges::range_difference_t<R>) -> take_view<std::views::all_
 
 } // namespace belleviews
 
-template<typename _Tp>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::take_view<_Tp>> = std::ranges::enable_borrowed_range<_Tp>;
+// borrowed if underlying range is borrows (as with std take_view):
+template<typename V>
+inline constexpr bool std::ranges::enable_borrowed_range<belleviews::take_view<V>> = std::ranges::enable_borrowed_range<V>;
 
+
+//*************************************************************
+// belleviews::take()
+// bel::views::take()
+// 
+// A C++ take_view adaptor for the belleviews::take_view
+//*************************************************************
 namespace belleviews {
 
 namespace _intern {
@@ -257,7 +288,7 @@ namespace _intern {
 }
 
 struct _Take {
-   // for: belleviews::take_view{coll, 2}
+   // for:  belleviews::take_view{rg, 2}
    template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
    requires _intern::can_take_view<Rg, DiffT>
    constexpr auto
@@ -265,7 +296,7 @@ struct _Take {
      return take_view{std::forward<Rg>(rg), diff};
    }
 
-   // for: coll | belleviews::take(2)
+   // for:  rg | belleviews::take(2)
    template<typename T>
    struct PartialTake {
      T diff;

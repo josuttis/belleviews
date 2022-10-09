@@ -212,7 +212,7 @@ int main()
             << " - for array:  " << sizeof(arr.begin()) << '\n'
             << " - for filter: " << sizeof(tr0.begin()) << '\n';
 
-  // bel filter view IS a borrowed range (in contrast to std filter view):
+  // bel filter view IS a borrowed range if the underlying range is (is contrast to the std filter view):
   auto getVec = [] {
     return std::vector<std::string>{"one", "two", "three"};
   };

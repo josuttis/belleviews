@@ -14,13 +14,15 @@
 // A C++ filter_view
 // with the following benefits compared to C++ standard views
 // - Iterating is stateles
-//   - Can iterator over elements when the view is const
+//   - Can iterate over elements when the view is const
 //   - Supports concurrent iterations
 //   - Read iterations do not affect later statements
 // - Always propagates const
 // Because
 // - This filter view does never cache begin()
 // - This filter view yields const iterators when it is const
+// OPEN/TODO:
+// - concept and category
 //*************************************************************
 namespace belleviews {
   namespace intern
