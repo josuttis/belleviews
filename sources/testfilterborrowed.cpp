@@ -221,6 +221,12 @@ int main()
   static_assert(!std::ranges::borrowed_range<decltype(vVecStd)>);
   auto vVecBel = vec | bel::views::filter([](const auto& s){return s[0] == 't';});
   static_assert(std::ranges::borrowed_range<decltype(vVecBel)>);
+  auto vVecStdBel = vec | std::views::filter([](const auto& s){return s[0] == 't';})
+                        | bel::views::filter([](const auto& s){return s[0] == 't';});
+  static_assert(!std::ranges::borrowed_range<decltype(vVecStdBel)>);
+  auto vVecBelBel = vec | bel::views::filter([](const auto& s){return s[0] == 't';})
+                        | bel::views::filter([](const auto& s){return s[0] == 't';});
+  static_assert(std::ranges::borrowed_range<decltype(vVecBelBel)>);
   //auto pos2 = std::views::filter(vec, [](const auto& s){return s[0] == 't';}).begin();  // OOPS
   //auto pos3 = std::views::filter(vec, [](const auto& s){return s[0] == 'o';}).begin();  // overwrite memory to force core dump
   //std::cout << * -- ++pos2 << '\n';                                                     // UB

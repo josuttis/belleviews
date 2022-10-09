@@ -493,7 +493,7 @@ filter_view(R&&, Pred) -> filter_view<std::views::all_t<R>, Pred>;
 
 // BORROWED VIEW:
 template<typename V, typename Pred>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<V, Pred>> = true;
+inline constexpr bool std::ranges::enable_borrowed_range<belleviews::filter_view<V, Pred>> = std::ranges::enable_borrowed_range<V>;
 
 
 //*************************************************************
