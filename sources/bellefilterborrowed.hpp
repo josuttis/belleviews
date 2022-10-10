@@ -23,67 +23,6 @@
 // - This filter view yields const iterators when it is const
 //*************************************************************
 namespace belleviews {
-  namespace intern
-  {
-    template<typename V>
-      concept boxable = std::copy_constructible<V> && std::is_object_v<V>;
-
-    template<boxable V>
-      struct box : std::optional<V>
-      {
-        using std::optional<V>::optional;
-
-        constexpr
-        box()
-        noexcept(std::is_nothrow_default_constructible_v<V>)
-        requires std::default_initializable<V>
-        : std::optional<V>{std::in_place}
-        { }
-
-        box(const box&) = default;
-        box(box&&) = default;
-
-        using std::optional<V>::operator=;
-
-        // _GLIBCXX_RESOLVE_LIB_DEFECTS
-        // 3477. Simplify constraints for semiregular-box
-        // 3572. copyable-box should be fully constexpr
-        constexpr box&
-        operator=(const box& that)
-        noexcept(std::is_nothrow_copy_constructible_v<V>)
-        requires (!std::copyable<V>)
-        {
-          if (this != std::addressof(that))
-            {
-              if ((bool)that)
-                this->emplace(*that);
-              else
-                this->reset();
-            }
-          return *this;
-        }
-
-        constexpr box&
-        operator=(box&& that)
-        noexcept(std::is_nothrow_move_constructible_v<V>)
-        requires (!std::movable<V>)
-        {
-          if (this != std::addressof(that))
-            {
-              if ((bool)that)
-                this->emplace(std::move(*that));
-              else
-                this->reset();
-            }
-          return *this;
-        }
-      };
-  } //namespace intern
-} //namespace belleviews {
-// TODO: optimize box as in gcc (__box there)
-
-
-namespace belleviews {
 
   /* STD:
   namespace std::ranges {
@@ -176,7 +115,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   V base_ = V();                 // exposition only
   //semiregular-box<Pred> pred_;   // exposition only
   // TODO: semiregular box:
-  [[no_unique_address]] intern::box<Pred> pred_;
+  [[no_unique_address]] _intern::box<Pred> pred_;
   // 24.7.4.3, class filter_view::iterator
   //above: class iterator;                // exposition only
   // 24.7.4.4, class filter_view::sentinel
@@ -435,7 +374,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 
  private:
   V base_ = V();
-  [[no_unique_address]] intern::box<Pred> pred_;
+  [[no_unique_address]] _intern::box<Pred> pred_;
   //[[no_unique_address]] __detail::_CachedPosition<V> _M_cached_begin;
 
  public:

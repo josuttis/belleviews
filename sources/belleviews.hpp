@@ -30,22 +30,33 @@
 
 #include "makeconstiterator.hpp"
 
-namespace belleviews {
+namespace belleviews::_intern {
 
-namespace _intern {
+  // simple_view
   template<typename Rg>
   concept simple_view = std::ranges::view<Rg> && std::ranges::range<const Rg>
                          && std::same_as<std::ranges::iterator_t<Rg>, std::ranges::iterator_t<const Rg>>
                          && std::same_as<std::ranges::sentinel_t<Rg>, std::ranges::sentinel_t<const Rg>>;
 
+  // has_arrow
   template<typename It>
   concept has_arrow = std::input_iterator<It> &&
                       (std::is_pointer_v<It> || requires(It it) { it.operator->(); });
 
+  // maybe_const
   template<bool _Const, typename _Tp>
     using maybe_const_t = std::conditional_t<_Const, const _Tp, _Tp>;
 
-  // might be missing:
+  // can_reference:
+  template<typename _Tp>
+    using with_ref = _Tp&;
+
+  template<typename _Tp>
+    concept can_reference = requires { typename with_ref<_Tp>; };
+
+
+  // reference, iterator and sentinel types:
+  // - partially come with C++23
   template<std::indirectly_readable It>
   using iter_const_reference_t = std::common_reference_t<const std::iter_value_t<It>&&, std::iter_reference_t<It>>;
 
@@ -71,9 +82,58 @@ namespace _intern {
 
   template<std::ranges::range R>
   using const_sentinel_t = const_sentinel<std::ranges::sentinel_t<R>>;
-}
+  
+  // box type (semiregular box)
+  template<typename V>
+  concept boxable = std::copy_constructible<V> && std::is_object_v<V>;
 
-} // namespace belleviews
+  template<boxable V>
+  struct box : std::optional<V>
+  {
+    using std::optional<V>::optional;
+
+    constexpr box() noexcept(std::is_nothrow_default_constructible_v<V>) requires std::default_initializable<V>
+     : std::optional<V>{std::in_place} {
+    }
+
+    box(const box&) = default;
+    box(box&&) = default;
+
+    using std::optional<V>::operator=;
+
+    // _GLIBCXX_RESOLVE_LIB_DEFECTS
+    // 3477. Simplify constraints for semiregular-box
+    // 3572. copyable-box should be fully constexpr
+    constexpr box& operator=(const box& rhs) noexcept(std::is_nothrow_copy_constructible_v<V>)
+    requires (!std::copyable<V>) {
+      if (this != std::addressof(rhs)) {
+        if ((bool)rhs) {
+          this->emplace(*rhs);
+        }
+        else {
+          this->reset();
+        }
+      }
+      return *this;
+    }
+
+    constexpr box& operator=(box&& rhs) noexcept(std::is_nothrow_move_constructible_v<V>)
+    requires (!std::movable<V>) {
+      if (this != std::addressof(rhs)) {
+        if ((bool)rhs) {
+          this->emplace(std::move(*rhs));
+        }
+        else {
+          this->reset();
+        }
+      }
+      return *this;
+    }
+  };
+  // TODO: optimize box as in gcc (__box there)
+
+
+} // namespace belleviews::_intern
 
 #include "belletake.hpp"
 #include "belledrop.hpp"
