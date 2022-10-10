@@ -77,10 +77,10 @@ int main()
   auto v1 = belleviews::transform_view{coll, square};
   print(v1);
 
-  /*
-  auto v2 = bel::views::drop(coll, 2);
+  auto v2 = bel::views::transform(coll, square);
   print(v2);
 
+  /*
   //print(coll | std::views::drop(2));  // ERROR withg standard views
   auto v3 = coll | bel::views::drop(2);
   print(v3);                            // OK with belle views

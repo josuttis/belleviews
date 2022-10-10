@@ -8,13 +8,13 @@
 #include <cassert>
 
 //*************************************************************
-// class belleviews::drop_view
+// class belleviews::transform_view
 // 
-// A C++ filter_view
+// A C++ transform_view
 // with the following benefits compared to C++ standard views
 // - Always propagates const
 // Because
-// - This filter view yields const iterators when it is const
+// - This view yields const iterators when it is const
 // OPEN/TODO:
 // - ...
 //*************************************************************
@@ -369,40 +369,56 @@ namespace belleviews {
 
   template<typename _Range, typename _Fp>
     transform_view(_Range&&, _Fp) -> transform_view<std::views::all_t<_Range>, _Fp>;
+} // namespace belleviews
 
-  namespace views
-  {
-    namespace _intern
-    {
-      template<typename _Range, typename _Fp>
-	concept can_transform_view
-	  = requires { transform_view(std::declval<_Range>(), std::declval<_Fp>()); };
-    } // namespace _intern
 
-    struct _Transform //: __adaptor::_RangeAdaptor<_Transform>
-    {
-      template<std::ranges::viewable_range _Range, typename _Fp>
-	requires _intern::can_transform_view<_Range, _Fp>
-	constexpr auto
-	operator() [[nodiscard]] (_Range&& __r, _Fp&& __f) const
-	{
-	  return transform_view(std::forward<_Range>(__r), std::forward<_Fp>(__f));
-	}
+//*************************************************************
+// belleviews::transform()
+// bel::views::transform()
+// 
+// A C++ transform_view adaptor for the belleviews::transform_view
+//*************************************************************
+namespace belleviews {
 
-      //using _RangeAdaptor<_Transform>::operator();
-      //static constexpr int _S_arity = 2;
-      //static constexpr bool _S_has_simple_extra_args = true;
-    };
+namespace _intern {
+  template<typename Rg, typename Pred>
+  concept can_transform_view = requires { transform_view(std::declval<Rg>(), std::declval<Pred>()); };
+}
 
-    inline constexpr _Transform transform;
-  } // namespace views
+struct _Transform {
+   // for:  bel::views::transform(rg, pred)
+   template<std::ranges::viewable_range Rg, typename Pred>
+   requires _intern::can_transform_view<Rg, Pred>
+   constexpr auto
+   operator() [[nodiscard]] (Rg&& rg, Pred&& pred) const {
+     return transform_view{std::forward<Rg>(rg), std::forward<Pred>(pred)};
+   }
 
+   // for:  rg | belleviews::transform(pred)
+   template<typename T>
+   struct PartialTransform {
+     T pred;
+   };
+
+   template<typename Pred>
+   constexpr auto
+   operator() [[nodiscard]] (Pred pred) const {
+     return PartialTransform<Pred>{pred};
+   }
+
+   template<typename Rg, typename Pred>
+   friend constexpr auto
+   operator| (Rg&& rg, PartialTransform<Pred> pd) {
+     return transform_view{std::forward<Rg>(rg), pd.pred};
+   }
+};
+
+inline constexpr _Transform transform;
 
 } // namespace belleviews
 
 namespace bel::views {
-  //inline constexpr belleviews::_Transform transform;
-  inline constexpr belleviews::views::_Transform transform;
+  inline constexpr belleviews::_Transform transform;
 }
 
 #endif // BELLETRANSFORM_HPP
