@@ -10,11 +10,11 @@
 //*************************************************************
 // class belleviews::drop_view
 // 
-// A C++ filter_view
+// A C++ view
 // with the following benefits compared to C++ standard views
 // - Always propagates const
 // Because
-// - This filter view yields const iterators when it is const
+// - This view yields const iterators when it is const
 // OPEN/TODO:
 // - ...
 //*************************************************************

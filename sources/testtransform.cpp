@@ -59,12 +59,14 @@ void testDropCache(const std::string& msg, auto&& lst, auto&& vLst)
   printUniversal("copy:     ",  vLst2);  // OK:      2 3 4 5
 }
 
+*/
+
 template<typename T, typename T2>
 concept SupportsAssign = requires (T x, T2 y) { x = y; };
 
-*/
 
 #include "belletransform.hpp"
+
 
 int main()
 {
@@ -106,7 +108,6 @@ int main()
   auto sumOK = printAndAccum(v3);           // OK
   std::cout << "sumOK: " << sumOK << '\n';
 
-  /*
   // **** test const propagation:
   std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
   print(arr);
@@ -123,41 +124,26 @@ int main()
   assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
   print(arr);
 
-
-  // **** caching works as expected: 
-  {
-    std::vector vec{1, 2, 3, 4, 5};
-    testDropCache("std::views::drop() on vector", vec, vec | std::views::drop(2));
-  }
-  {
-    std::list lst{1, 2, 3, 4, 5};
-    testDropCache("std::views::drop() on list", lst, lst | std::views::drop(2));
-  }
-  {
-    std::list lst{1, 2, 3, 4, 5};
-    testDropCache("bel::views::drop() on list", lst, lst | bel::views::drop(2));
-  }
-
-
+  /*
   // test const propagation:
   // - usually we can modify elements:
-  auto&& dr0 =  arr | bel::views::drop(2);
-  dr0[0] = 42;     // OK
-  static_assert(SupportsAssign<decltype(dr0[0]), int>);
+  auto&& tr0 =  arr | bel::views::transform(square);
+  tr0[0] = 42;     // OK
+  static_assert(SupportsAssign<decltype(tr0[0]), int>);
   // - but not if view is const:
-  const auto& drConst =  arr | bel::views::drop(2);
-  //drConst[0] = 42;     // ERROR
-  if constexpr (SupportsAssign<decltype(drConst[0]), int>) {     // ERROR
+  const auto& trConst =  arr | bel::views::trasform(square);
+  //trConst[0] = 42;     // ERROR
+  if constexpr (SupportsAssign<decltype(trConst[0]), int>) {     // ERROR
     std::cerr << "TEST FAILED: can assign so const not propagated\n";
   }
   else {
     std::cerr << "OK: can't assign, so const is propagated\n";
   }
-  static_assert(!SupportsAssign<decltype(drConst[0]), int>);
+  static_assert(!SupportsAssign<decltype(trConst[0]), int>);
   // - NOTE: a non-const copy of the view can modify elements again: 
-  auto dr2 = drConst;
-  dr2[0] = 42;     // !!!
-  static_assert(SupportsAssign<decltype(dr2[0]), int>);
+  auto tr2 = trConst;
+  tr2[0] = 42;     // !!!
+  static_assert(SupportsAssign<decltype(tr2[0]), int>);
 
   // const views should be common range if possible:
   static_assert(std::ranges::common_range<decltype(arr)>);
@@ -211,5 +197,60 @@ int main()
                             0L);
   }
   */
+
+    /*
+  std::cout << "writing transformations:\n";
+  std::list<int> lst{1, 2, 3, 4, 5, 6, 7, 8};
+  print(lst);
+  auto add100 = [] (int& elem) -> int& {
+    //std::cout << "process " << elem << '\n';
+    return elem += 100;
+  };
+
+  // std behavior: const has no effect:
+  for (auto& val : lst | bel::views::transform(add100) | bel::views::take(2) | bel::views::transform(add100)) {
+  }
+  print(lst);
+
+  // std behavior: const has no effect:
+  const auto cv = lst | bel::views::transform(add100) | std::views::take(2) | bel::views::transform(add100);
+  for (auto& val : cv) {
+
+  }
+  print(lst);
+  */
+
+  // initialize collection with pairs of int as elements:
+  std::vector<std::pair<int,int>> vecPairs{{1,0}, {5,3}, {2,2}, {4,1}, {2,7}};
+  auto printPairs = [] (const auto& coll) {
+    for (auto& elem : coll) {
+      std::cout << elem.first << '/' << elem.second << ' ';
+    }
+    std::cout << '\n';
+  };
+  printPairs(vecPairs);
+
+  // increment the smaller of the two values in each pair:
+  auto lessOf1st2nd = [] (std::pair<int,int>& elem) -> int& {
+    return elem.first > elem.second ? elem.second : elem.first;
+  };
+  for (auto&& member : vecPairs | bel::views::transform(lessOf1st2nd)) {
+    ++member;
+  }
+  printPairs(vecPairs);
+
+  // std behavior: const has no effect:
+  const auto cvStd = vecPairs | std::views::transform(lessOf1st2nd);
+  for (auto&& member : cvStd) {
+    ++member;
+  }
+  printPairs(vecPairs);
+
+  // TODO: SHOULD NOT COMPILE: bel behavior: const makes elements const:
+  const auto cvBel = vecPairs | bel::views::transform(lessOf1st2nd);
+  for (auto&& member : cvBel) {
+    ++member;
+  }
+  printPairs(vecPairs);
 }
 

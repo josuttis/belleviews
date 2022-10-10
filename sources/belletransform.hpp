@@ -10,7 +10,7 @@
 //*************************************************************
 // class belleviews::transform_view
 // 
-// A C++ transform_view
+// A C++ view
 // with the following benefits compared to C++ standard views
 // - Always propagates const
 // Because

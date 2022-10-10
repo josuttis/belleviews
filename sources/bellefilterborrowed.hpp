@@ -11,119 +11,19 @@
 //*************************************************************
 // class belleviews::filter_view
 // 
-// A C++ filter_view
+// A C++ view
 // with the following benefits compared to C++ standard views
 // - Iterating is stateles
-//   - Can iterator over elements when the view is const
+//   - Can iterate over elements when the view is const
 //   - Supports concurrent iterations
 //   - Read iterations do not affect later statements
 // - Always propagates const
 // Because
-// - This filter view does never cache begin()
-// - This filter view yields const iterators when it is const
+// - This view does never cache begin()
+// - This view yields const iterators when it is const
 //*************************************************************
 namespace belleviews {
 
-  /* STD:
-  namespace std::ranges {
-    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
-    requires view<V> && is_object_v<Pred>
-    class filter_view : public view_interface<filter_view<V, Pred>> {
-     private:
-      V base_ = V(); // exposition only
-      semiregular-box<Pred> pred_; // exposition only
-      // 24.7.4.3, class filter_view::iterator
-      class iterator ; // exposition only
-      // 24.7.4.4, class filter_view::sentinel
-      class sentinel ; // exposition only
-     public:
-      filter_view() = default;
-      constexpr filter_view(V base, Pred pred);
-      constexpr V base() const& requires copy_constructible<V> { return base_; }
-      constexpr V base() && { return std::move(base_); }
-      constexpr const Pred& pred() const;
-      constexpr iterator begin();
-      constexpr auto end() {
-        if constexpr (common_range<V>)
-          return iterator {*this, ranges::end(base_)};
-        else
-          return sentinel {*this};
-      }
-    };
-    template<class R, class Pred>
-    filter_view(R&&, Pred) -> filter_view<views::all_t<R>, Pred>;
-  }
-
-  namespace std::ranges {
-    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
-    requires view<V> && is_object_v<Pred>
-    class filter_view<V, Pred>::iterator {
-     private:
-      iterator_t<V> current_ = iterator_t<V>(); // exposition only
-      filter_view* parent_ = nullptr; // exposition only
-     public:
-      using iterator_concept = see below ;
-      using iterator_category = see below ;
-      using value_type = range_value_t<V>;
-      using difference_type = range_difference_t<V>;
-      iterator () = default;
-      constexpr iterator (filter_view& parent, iterator_t<V> current);
-      constexpr iterator_t<V> base() const &
-      requires copyable<iterator_t<V>>;
-      constexpr iterator_t<V> base() &&;
-      constexpr range_reference_t<V> operator*() const;
-      constexpr iterator_t<V> operator->() const
-      requires has-arrow <iterator_t<V>> && copyable<iterator_t<V>>;
-      constexpr iterator & operator++();
-      constexpr void operator++(int);
-      constexpr iterator operator++(int) requires forward_range<V>;
-      constexpr iterator & operator--() requires bidirectional_range<V>;
-      constexpr iterator operator--(int) requires bidirectional_range<V>;
-      friend constexpr bool operator==(const iterator & x, const iterator & y)
-      requires equality_comparable<iterator_t<V>>;
-      friend constexpr range_rvalue_reference_t<V> iter_move(const iterator & i)
-      noexcept(noexcept(ranges::iter_move(i.current_)));
-      friend constexpr void iter_swap(const iterator & x, const iterator & y)
-      noexcept(noexcept(ranges::iter_swap(x.current_, y.current_)))
-      requires indirectly_swappable<iterator_t<V>>;
-    };
-  }
-
-  namespace std::ranges {
-    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
-    requires view<V> && is_object_v<Pred>
-    class filter_view<V, Pred>::sentinel {
-     private:
-      sentinel_t<V> end_ = sentinel_t<V>(); // exposition only
-     public:
-      sentinel () = default;
-      constexpr explicit sentinel (filter_view& parent);
-      constexpr sentinel_t<V> base() const;
-      friend constexpr bool operator==(const iterator & x, const sentinel & y);
-    };
-  }
-
-*/
-
-  /*
-template<std::ranges::input_range V,
-         std::indirect_unary_predicate<std::ranges::iterator_t<V>> Pred>
-requires std::ranges::view<V> && std::is_object_v<Pred>
-class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
-{
- private:
-  V base_ = V();                 // exposition only
-  //semiregular-box<Pred> pred_;   // exposition only
-  // TODO: semiregular box:
-  [[no_unique_address]] _intern::box<Pred> pred_;
-  // 24.7.4.3, class filter_view::iterator
-  //above: class iterator;                // exposition only
-  // 24.7.4.4, class filter_view::sentinel
-  //above: class sentinel;                // exposition only
- public:
-
-}
-*/
 
 template<std::ranges::input_range V,
          std::indirect_unary_predicate<std::ranges::iterator_t<V>> Pred>
@@ -483,5 +383,104 @@ inline constexpr _Filter filter;
 namespace bel::views {
   inline constexpr belleviews::_Filter filter;
 }
+
+
+/* STD:
+  namespace std::ranges {
+    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
+    requires view<V> && is_object_v<Pred>
+    class filter_view : public view_interface<filter_view<V, Pred>> {
+     private:
+      V base_ = V(); // exposition only
+      semiregular-box<Pred> pred_; // exposition only
+      // 24.7.4.3, class filter_view::iterator
+      class iterator ; // exposition only
+      // 24.7.4.4, class filter_view::sentinel
+      class sentinel ; // exposition only
+     public:
+      filter_view() = default;
+      constexpr filter_view(V base, Pred pred);
+      constexpr V base() const& requires copy_constructible<V> { return base_; }
+      constexpr V base() && { return std::move(base_); }
+      constexpr const Pred& pred() const;
+      constexpr iterator begin();
+      constexpr auto end() {
+        if constexpr (common_range<V>)
+          return iterator {*this, ranges::end(base_)};
+        else
+          return sentinel {*this};
+      }
+    };
+    template<class R, class Pred>
+    filter_view(R&&, Pred) -> filter_view<views::all_t<R>, Pred>;
+  }
+
+  namespace std::ranges {
+    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
+    requires view<V> && is_object_v<Pred>
+    class filter_view<V, Pred>::iterator {
+     private:
+      iterator_t<V> current_ = iterator_t<V>(); // exposition only
+      filter_view* parent_ = nullptr; // exposition only
+     public:
+      using iterator_concept = see below ;
+      using iterator_category = see below ;
+      using value_type = range_value_t<V>;
+      using difference_type = range_difference_t<V>;
+      iterator () = default;
+      constexpr iterator (filter_view& parent, iterator_t<V> current);
+      constexpr iterator_t<V> base() const &
+      requires copyable<iterator_t<V>>;
+      constexpr iterator_t<V> base() &&;
+      constexpr range_reference_t<V> operator*() const;
+      constexpr iterator_t<V> operator->() const
+      requires has-arrow <iterator_t<V>> && copyable<iterator_t<V>>;
+      constexpr iterator & operator++();
+      constexpr void operator++(int);
+      constexpr iterator operator++(int) requires forward_range<V>;
+      constexpr iterator & operator--() requires bidirectional_range<V>;
+      constexpr iterator operator--(int) requires bidirectional_range<V>;
+      friend constexpr bool operator==(const iterator & x, const iterator & y)
+      requires equality_comparable<iterator_t<V>>;
+      friend constexpr range_rvalue_reference_t<V> iter_move(const iterator & i)
+      noexcept(noexcept(ranges::iter_move(i.current_)));
+      friend constexpr void iter_swap(const iterator & x, const iterator & y)
+      noexcept(noexcept(ranges::iter_swap(x.current_, y.current_)))
+      requires indirectly_swappable<iterator_t<V>>;
+    };
+  }
+
+  namespace std::ranges {
+    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
+    requires view<V> && is_object_v<Pred>
+    class filter_view<V, Pred>::sentinel {
+     private:
+      sentinel_t<V> end_ = sentinel_t<V>(); // exposition only
+     public:
+      sentinel () = default;
+      constexpr explicit sentinel (filter_view& parent);
+      constexpr sentinel_t<V> base() const;
+      friend constexpr bool operator==(const iterator & x, const sentinel & y);
+    };
+  }
+
+template<std::ranges::input_range V,
+         std::indirect_unary_predicate<std::ranges::iterator_t<V>> Pred>
+requires std::ranges::view<V> && std::is_object_v<Pred>
+class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
+{
+ private:
+  V base_ = V();                 // exposition only
+  //semiregular-box<Pred> pred_;   // exposition only
+  // TODO: semiregular box:
+  [[no_unique_address]] _intern::box<Pred> pred_;
+  // 24.7.4.3, class filter_view::iterator
+  //above: class iterator;                // exposition only
+  // 24.7.4.4, class filter_view::sentinel
+  //above: class sentinel;                // exposition only
+ public:
+
+}
+*/
 
 #endif // BELLEFILTER_HPP
