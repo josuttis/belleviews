@@ -80,33 +80,33 @@ int main()
   auto v2 = bel::views::transform(coll, square);
   print(v2);
 
-  /*
   //print(coll | std::views::drop(2));  // ERROR withg standard views
-  auto v3 = coll | bel::views::drop(2);
+  auto v3 = coll | bel::views::transform(square);
   print(v3);                            // OK with belle views
 
-  auto v4 = coll | bel::views::drop(2) | std::views::take(4);
+  auto v4 = coll | bel::views::drop(2) | std::views::transform(square);
   print(v4);
 
-  auto v5 = coll | std::views::take(6) | bel::views::drop(2);
+  auto v5 = coll | std::views::transform(square) | bel::views::drop(2);
   print(v5);
 
-  //auto v6 = coll | std::views::take(6) | bel::views::drop(2) | std::views::take(2);
+  // TODO: why doesn't this work?:
+  //auto v6 = coll | std::views::transform(square) | bel::views::take(5) | std::views::transform(square);
   //print(v6);
 
   // **** compare with std::views::drop():
-  auto v1std = std::ranges::drop_view{coll, 2};
-  //print(v1std);                           // compile-time ERROR
+  auto v1std = std::ranges::transform_view{coll, square};
+  print(v1std);                           // compile-time ERROR
 
-  auto v3std = coll | std::views::drop(2);
-  //print(v3std);                           // compile-time ERROR
+  auto v3std = coll | std::views::transform(square);
+  print(v3std);                           // compile-time ERROR
 
-  //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
-  //std::cout << "sumUB: " << sumUB << '\n';
+  auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
+  std::cout << "sumUB: " << sumUB << '\n';
   auto sumOK = printAndAccum(v3);           // OK
   std::cout << "sumOK: " << sumOK << '\n';
 
-
+  /*
   // **** test const propagation:
   std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
   print(arr);
