@@ -1,33 +1,39 @@
 # Belle Views for C++
 
-Belleviews - A library of C++ views that are  easier to use, more robust,
-and cause less unexpected compile-time and runtime errors than the views of the C++ standard library.
+Belleviews - A library of C++ views that just works.
 
-## Why?
+Belleviews are easier to use, more robust,
+and cause less unexpected compile-time and runtime errors
+than the views of the C++ standard library.
+
+## Motivation
 
 C++20 introduced the ranges library which contain views.
 Views are lightweight ranges that refer to (a subset of) a range
 with optional transformation of the values.
 
-Views are simple and great to use.
-However, as standardized they break a couple of basic guarantees collections
-such as containers usually have:
+Views are simple and great to use and the standard ranges library and its implementation
+are a tremendous piece of work.
+
+However, for the standrad views, some design decisions were made
+that are confusing and error-prone and cause sever problems
+because these decisions break a couple of basic guarantees that collections
+(such as standard containers) usually have:
 - You might not be able to iterate over the elements of a standard view when the view is const.
-- As a consequence generic code that for all ranges (coontainers and views)
-   has to declare the parameters as universal/forwarding references.
-- Standard views do not propagate constness.
-   This means that declaring the view const does not declare the elements to be const.
-- Iterating over a standard view concurrently with two threads might cause a data race
-   (a runtime error due to undefined behavior).
-- For that reason, using standard views in parallel algorithms is
-   also a runtime error (undefined behavior).
-- For some standard views declaring the elements as const does have no effect.
-   You might be able to modify the members of a const element of a view.
+  As a consequence:
+  - Generic code for both containers and views has to declare the parameters as universal/forwarding references.
+- Concurrent iterations might cause undefined behavior (due to a data race).
+  This kind of fatal runtime error is not obvious to see.
+- For that reason, using standard views in parallel algorithms is a runtime error (undefined behavior).
 - Iterations that read elements might affect the functional behavior
    of later iterations.
+- Standard views do not propagate constness.
+   This means that declaring the view const does not declare the elements to be const.
+- For some standard views declaring the elements as const does have no effect.
+   You might be able to modify the members of a const element of a view.
 - Copying a view might create a view that has a different state and behavior than the source view.
 - cbegin() and cend() might not make elements const.
-- Type const_iterator is available.
+- Type const_iterator is not available.
 - A standard view is not always a pure subset restricting or dealing with the elements of a range,
    but not providing opeionts the range would not provide.
    They might remove constraints and provide options, the range itself does not have. 
@@ -35,19 +41,34 @@ such as containers usually have:
 This make the use of views error-prone, confusing and programmers might easily create fatal runtime errors
 wihtout being noticing it.
 
-There are multiple reasons for this behavior:
-- Views might cache begin to oiptimize for multiple iterations with the same view
-   (the funny part is that due to its restrictions, it is recommended to use them ad-hoc
-    and iterate only once).
+There are reasons for this behavior:
+- The kwy problem is the decision that views might cache begin() so that
+  iterating over elements is not stateless.
+  The funny consequence is that due to the several consequences you should use standard views ad hoc,
+  so that the optimization (which only helps for a second iteration) often doesn't pay of.
 - The designers of the views considered views as pointers instead of
-   references to collections. That especially causes the confusing handling of const.
+  references to collections. However view are no pointers (they do not provide operator * or ->).
+  They only internally use pointers.
+  The result is a huge confusion of basic rules like const propagation,
+  which usually is expected to apply to collection types.
+  (Don't get me wrong; you could and can always implement collection types that
+   do not propagate constness; however, not everythign you can do as an expert is usefull for the mass.)
 
 We can do better.
-This library provides views that are simple to use and reducse the number of suprises causing compiletime errpors and runtime errorsy.
-In some cases the price may be a worse performance.
-However, programs are far mor predictable in behavior, do what programmers expect, generic code
-using them becomes way more cimpler and you can still get the well performance with some additional
-tricks.
+
+Unfortunately, it is too late to fix standard views anymore.
+
+So as an alternative for the standard views, this library is implemented.
+It provides views that are simple to use and reduce the number of suprises causing compiletime errpors and runtime errors.
+In some special cases the price may be a potentially worse performance.
+However, the library will provide workarounds.
+The key benefit is that with these views,
+programs are way more predictable in behavior and meet the expectations of ordinary programmers.
+This especially helps in generic code that may be used for both containers and views.
+
+This library does not replace the ranges library.
+It only is an alternative for the views in the standard library.
+Usually, it should be possible to combione both.
 
 ## How to use Belle Views
 
@@ -154,7 +175,8 @@ Available:
 - drop_view
 - take_view
 - filter_view
-- sub_view
+- transform_view (without const propagation yet)
+- sub_view (without const propagation yet)
 
 ### ToDo
 
@@ -184,6 +206,13 @@ see
 >  C++20 - The Complete Guide by Nicolai M. Josuttis
 >
 >  http://cppstd20.com
+
+## Acknowledgements
+
+This library could not have been implemented without the tremendous work of the ranges library,
+which becmane part of the C++ standard in C++20.
+It is build on top of it.
+So many many thanke for all who worked on this libary.
 
 ## Feedback
 
