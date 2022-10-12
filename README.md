@@ -42,7 +42,7 @@ This make the use of views error-prone, confusing and programmers might easily c
 wihtout being noticing it.
 
 There are reasons for this behavior:
-- The kwy problem is the decision that views might cache begin() so that
+- The key problem is the decision that views might cache begin() so that
   iterating over elements is not stateless.
   The funny consequence is that due to the several consequences you should use standard views ad hoc,
   so that the optimization (which only helps for a second iteration) often doesn't pay of.
@@ -176,7 +176,7 @@ Available:
 - take_view
 - filter_view
 - transform_view (without const propagation yet)
-- sub_view (without const propagation yet)
+- sub_view, the new subrange with factory sub(beg,end) (without const propagation yet)
 
 ### ToDo
 
