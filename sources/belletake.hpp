@@ -288,7 +288,7 @@ namespace _intern {
 }
 
 struct _Take {
-   // for:  belleviews::take_view{rg, 2}
+   // for:  bel::views::take(rg, 2)
    template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
    requires _intern::can_take_view<Rg, DiffT>
    constexpr auto
@@ -296,7 +296,7 @@ struct _Take {
      return take_view{std::forward<Rg>(rg), diff};
    }
 
-   // for:  rg | belleviews::take(2)
+   // for:  rg | bel::views::take(2)
    template<typename T>
    struct PartialTake {
      T diff;
