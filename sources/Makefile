@@ -1,6 +1,6 @@
 default: modall.win
 
-include ../Makefile.h
+include Makefile.h
 	
 ###########################################
 # generic rules for special module suffixes
