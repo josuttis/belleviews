@@ -134,7 +134,16 @@ Belle views support concurrent read iterations for all views:
                             vBel.begin(), vBel.end(),
                             0L);
 
-For more examples, see in sources: testdrop.cpp, testtake.cpp, testfilter.cpp
+Belle views are more consistent and complete.
+For example, you have consistent names of all view types
+and an adaptor/factory for all of them:
+
+    std::ranges::subrange s1{++coll.begin(), --coll.end()};    // strange name, no factory
+
+    auto s2 = bel::views::sub(++coll.begin(), --coll.end());   // factory with consistent name
+
+For more examples, see in sources all the test code.
+
 
 ## Design decisions
 
