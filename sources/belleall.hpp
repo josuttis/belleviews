@@ -41,12 +41,20 @@ class ref_view : public std::ranges::view_interface<ref_view<Rg>>
     return *rgPtr; 
   }
 
-  constexpr std::ranges::iterator_t<Rg> begin() const { 
+  // begin():
+  constexpr std::ranges::iterator_t<Rg> begin() { 
     return std::ranges::begin(*rgPtr); 
   }
+  constexpr auto begin() const { 
+    return make_const_iterator(std::ranges::begin(*rgPtr)); 
+  }
 
-  constexpr std::ranges::sentinel_t<Rg> end() const { 
+  // end():
+  constexpr std::ranges::sentinel_t<Rg> end() { 
     return std::ranges::end(*rgPtr); 
+  }
+  constexpr auto end() const { 
+    return make_const_iterator(std::ranges::end(*rgPtr)); 
   }
 
   constexpr bool empty() const requires requires { std::ranges::empty(*rgPtr); } { 
@@ -115,20 +123,21 @@ class owning_view : public std::ranges::view_interface<owning_view<_Range>>
       constexpr _Range&& base() && noexcept { return std::move(_M_r); }
       constexpr const _Range&& base() const&& noexcept { return std::move(_M_r); }
 
+      // begin():
       constexpr std::ranges::iterator_t<_Range> begin() {
         return std::ranges::begin(_M_r);
       }
 
+      constexpr auto begin() const requires std::ranges::range<const _Range> {
+        return make_const_iterator(std::ranges::begin(_M_r)); 
+      }
+
+      // end():
       constexpr std::ranges::sentinel_t<_Range> end() {
         return std::ranges::end(_M_r);
       }
-
-      constexpr auto begin() const requires std::ranges::range<const _Range> {
-        return std::ranges::begin(_M_r); 
-      }
-
       constexpr auto end() const requires std::ranges::range<const _Range> {
-        return std::ranges::end(_M_r);
+        return make_const_iterator(std::ranges::end(_M_r));
       }
 
       constexpr bool empty() requires requires { std::ranges::empty(_M_r); } {
