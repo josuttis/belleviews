@@ -181,11 +181,12 @@ Still:
 ## Status
 
 Available:
-- drop_view
-- take_view
-- filter_view
-- transform_view (without const propagation yet)
-- sub_view, the new subrange with factory sub(beg,end) (without const propagation yet)
+- `ref_view`, `owning_view`, and `all()`
+- `drop_view` and `drop()`
+- `take_view` and `take()`
+- `filter_view` and `filter()`
+- `transform_view` (without const propagation yet)
+- `sub_view`, the new subrange with factory sub(beg,end) (without const propagation yet)
 
 ### ToDo
 
@@ -196,7 +197,7 @@ OPEN ISSUES:
 
 OPEN TOPICS:
 1. Support of remaining basic views: transform (<font color="red">at work</font>)
-1. Support of all, counted, common
+1. Support of counted, common
 1. Support of elements, keys,values
    - with fix that elements always works on tuple-like APIs
 1. Support of reverse
