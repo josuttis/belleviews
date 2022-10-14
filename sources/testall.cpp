@@ -51,9 +51,30 @@ int main()
   //**** test functionality:
   auto v1 = bel::views::all(coll);
   print(v1);
+  static_assert(std::same_as<decltype(v1), belleviews::ref_view<decltype(coll)>>);
 
   auto v2 = bel::views::all(std::vector{1, 2, 3, 4, 5});
   print(v2);
+  static_assert(std::same_as<decltype(v2), belleviews::owning_view<std::vector<int>>>);
+
+
+  // **** test const propagation:
+  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
+  print(arr);
+
+  const auto& arr_std_cref = std::views::all(arr);
+  *arr_std_cref.begin() += 100;           // OOPS: compiles 
+  // with array<const int, 8>:
+  //   error: no match for 'operator+=' (operand types are 'const int' and 'int')
+  print(arr);
+
+  const auto& arr_bel_cref = bel::views::all(arr);
+  // *arr_bel_cref.begin() += 100;   // ERROR (good)
+                                      //  no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
+  //assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
+  print(arr);
+
+  
 
   /*
   //print(coll | std::views::drop(2));  // ERROR withg standard views
@@ -80,23 +101,6 @@ int main()
   //std::cout << "sumUB: " << sumUB << '\n';
   auto sumOK = printAndAccum(v3);           // OK
   std::cout << "sumOK: " << sumOK << '\n';
-
-
-  // **** test const propagation:
-  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
-  print(arr);
-
-  const auto& arr_std_cref = arr | std::views::drop(2);
-  *arr_std_cref.begin() += 100;           // OOPS: compiles 
-  // with array<const int, 8>:
-  //   error: no match for 'operator+=' (operand types are 'const int' and 'int')
-  print(arr);
-
-  const auto& arr_bel_cref = arr | bel::views::take(6);
-  // *arr_bel_cref.begin() += 100;   // ERROR (good)
-                                      //  no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
-  assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
-  print(arr);
 
 
   // **** caching works as expected: 

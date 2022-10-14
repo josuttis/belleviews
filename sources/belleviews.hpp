@@ -32,6 +32,13 @@
 
 namespace belleviews::_intern {
 
+  // is_initializer_list
+  template<typename _Tp>
+  inline constexpr bool is_initializer_list = false;
+
+  template<typename _Tp>
+  inline constexpr bool is_initializer_list<std::initializer_list<_Tp>> = true;
+
   // simple_view
   template<typename Rg>
   concept simple_view = std::ranges::view<Rg> && std::ranges::range<const Rg>
@@ -207,5 +214,6 @@ namespace belleviews::_intern {
 #include "bellefilter.hpp"
 #endif
 #include "bellesub.hpp"
+#include "belleall.hpp"
 
 #endif // BELLEVIEWS_HPP

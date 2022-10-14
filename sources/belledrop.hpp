@@ -96,7 +96,7 @@ namespace _intern {
 }
 
 struct _Drop {
-   // for:  bel::views::drop(coll, 2)
+   // for:  bel::views::drop(rg, 2)
    template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
    requires _intern::can_drop_view<Rg, DiffT>
    constexpr auto
@@ -104,7 +104,7 @@ struct _Drop {
      return drop_view{std::forward<Rg>(rg), diff};
    }
 
-   // for:  coll | bel::views::drop(2)
+   // for:  rg | bel::views::drop(2)
    template<typename T>
    struct PartialDrop {
      T diff;

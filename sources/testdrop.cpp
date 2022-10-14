@@ -113,7 +113,7 @@ int main()
   const auto& arr_bel_cref = arr | bel::views::take(6);
   //*arr_bel_cref.begin() += 100;   // ERROR (good)
                                       //  no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
-  assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
+  static_assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
   print(arr);
 
 
