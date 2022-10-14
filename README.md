@@ -181,7 +181,7 @@ Still:
 ## Status
 
 Available:
-- `ref_view`, `owning_view`, and `all()`
+- `ref_view`, `owning_view`, `all()`, and `all_t`
 - `drop_view` and `drop()`
 - `take_view` and `take()`
 - `filter_view` and `filter()`
