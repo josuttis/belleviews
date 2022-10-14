@@ -81,7 +81,7 @@ inline constexpr bool std::ranges::enable_borrowed_range<belleviews::ref_view<Rg
 
 
 //*************************************************************
-// class belleviews::ref_view
+// class belleviews::owning_view
 // 
 // A C++ view
 // with the following benefits compared to C++ standard views
@@ -93,75 +93,71 @@ inline constexpr bool std::ranges::enable_borrowed_range<belleviews::ref_view<Rg
 //*************************************************************
 namespace belleviews {
 
-template<std::ranges::range _Range>
-requires std::movable<_Range> && (!_intern::is_initializer_list<std::remove_cv_t<_Range>>)
-class owning_view : public std::ranges::view_interface<owning_view<_Range>>
+template<std::ranges::range Rg>
+requires std::movable<Rg> && (!_intern::is_initializer_list<std::remove_cv_t<Rg>>)
+class owning_view : public std::ranges::view_interface<owning_view<Rg>>
 {
  private:
-   _Range _M_r = _Range();
+   Rg rg = Rg();
 
  public:
-      owning_view() requires std::default_initializable<_Range> = default;
+   owning_view() requires std::default_initializable<Rg> = default;
 
-      constexpr
-      owning_view(_Range&& __t)
-      noexcept(std::is_nothrow_move_constructible_v<_Range>)
-	: _M_r(std::move(__t))
-      { }
+   constexpr owning_view(Rg&& __t) noexcept(std::is_nothrow_move_constructible_v<Rg>)
+    : rg(std::move(__t)) {
+   }
 
-      owning_view(owning_view&&) = default;
-      owning_view& operator=(owning_view&&) = default;
+   owning_view(owning_view&&) = default;
+   owning_view& operator=(owning_view&&) = default;
 
-      constexpr _Range&
-      base() & noexcept
-      { return _M_r; }
+   constexpr Rg& base() & noexcept { return rg; }
+   constexpr const Rg& base() const& noexcept { return rg; }
 
-      constexpr const _Range&
-      base() const& noexcept
-      { return _M_r; }
+   constexpr Rg&& base() && noexcept { return std::move(rg); }
+   constexpr const Rg&& base() const&& noexcept { return std::move(rg); }
 
-      constexpr _Range&& base() && noexcept { return std::move(_M_r); }
-      constexpr const _Range&& base() const&& noexcept { return std::move(_M_r); }
+   // begin():
+   constexpr std::ranges::iterator_t<Rg> begin() {
+     return std::ranges::begin(rg);
+   }
 
-      // begin():
-      constexpr std::ranges::iterator_t<_Range> begin() {
-        return std::ranges::begin(_M_r);
-      }
+   constexpr auto begin() const requires std::ranges::range<const Rg> {
+     return make_const_iterator(std::ranges::begin(rg)); 
+   }
 
-      constexpr auto begin() const requires std::ranges::range<const _Range> {
-        return make_const_iterator(std::ranges::begin(_M_r)); 
-      }
+   // end():
+   constexpr std::ranges::sentinel_t<Rg> end() {
+     return std::ranges::end(rg);
+   }
+   constexpr auto end() const requires std::ranges::range<const Rg> {
+     return make_const_iterator(std::ranges::end(rg));
+   }
 
-      // end():
-      constexpr std::ranges::sentinel_t<_Range> end() {
-        return std::ranges::end(_M_r);
-      }
-      constexpr auto end() const requires std::ranges::range<const _Range> {
-        return make_const_iterator(std::ranges::end(_M_r));
-      }
+   constexpr bool empty() requires requires { std::ranges::empty(rg); } {
+     return std::ranges::empty(rg);
+   }
 
-      constexpr bool empty() requires requires { std::ranges::empty(_M_r); } {
-        return std::ranges::empty(_M_r);
-      }
+   // empty() and size():
+   constexpr bool empty() const requires requires { std::ranges::empty(rg); } {
+     return std::ranges::empty(rg);
+   }
 
-      constexpr bool empty() const requires requires { std::ranges::empty(_M_r); } {
-        return std::ranges::empty(_M_r); }
+   constexpr auto size() requires std::ranges::sized_range<Rg> {
+     return std::ranges::size(rg);
+   }
 
-      constexpr auto size() requires std::ranges::sized_range<_Range> {
-        return std::ranges::size(_M_r);
-      }
+   constexpr auto size() const requires std::ranges::sized_range<const Rg> {
+     return std::ranges::size(rg);
+   }
 
-      constexpr auto size() const requires std::ranges::sized_range<const _Range> {
-        return std::ranges::size(_M_r);
-      }
+   // data():
+   constexpr auto data() requires std::ranges::contiguous_range<Rg> {
+     return std::ranges::data(rg);
+   }
 
-      constexpr auto data() requires std::ranges::contiguous_range<_Range> {
-        return std::ranges::data(_M_r);
-      }
-
-      constexpr auto data() const requires std::ranges::contiguous_range<const _Range> {
-        return std::ranges::data(_M_r);
-      }
+   constexpr auto data() const requires std::ranges::contiguous_range<const Rg> {
+     return std::ranges::data(rg);
+   }
 };
 
 } // namespace belleviews

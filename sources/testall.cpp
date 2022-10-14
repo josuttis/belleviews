@@ -62,6 +62,10 @@ int main()
   auto sum2 = printAndAccum(v2);           // OK
   std::cout << "sum2: " << sum2 << '\n';
 
+  // test bel::views::all_t :
+  static_assert(std::same_as<bel::views::all_t<std::vector<int>&>, belleviews::ref_view<std::vector<int>>>);
+  static_assert(std::same_as<bel::views::all_t<std::vector<int>&&>, belleviews::owning_view<std::vector<int>>>);
+
 
   // **** test const propagation:
   std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
