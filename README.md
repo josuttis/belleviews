@@ -17,8 +17,11 @@ are a tremendous piece of work.
 
 However, for the standard views, some design decisions were made
 that are confusing and error-prone and cause sever problems
-because these decisions break a couple of basic idioms and that collections
-(such as standard containers) usually provide:
+because these decisions break a couple of basic idioms that collections
+(such as standard containers) usually provide.
+
+In fact, **C++ standard views have the following problems:**
+
 - You might **not be able to iterate** over the elements of a standard view **when the view is const**.
 
   As a consequence:
@@ -66,18 +69,19 @@ There are reasons for this behavior:
   (Don't get me wrong; you could and can always implement collection types that
    do not propagate constness; however, not everythign you can do as an expert is usefull for the mass.)
 
-However, the the mass these are too many compromises for not enough value.
-For the mass, we can do better.
+However, for the mass, these are too many compromises for not enough value.
+For the mass, **we can do better**.
 
-Unfortunately, it is too late to fix standard views anymore.
-
+Unfortunately, it is too late to fix the C++ standard views anymore.
 For this reason, as an alternative for the standard views, this library is implemented.
-It provides views that are simple to use and reduce the number of suprises causing compiletime errpors and runtime errors.
-In some special cases the price may be a potentially worse performance.
-However, the library will provide workarounds.
+
+The belleviews library provides views that are simple to use and reduce the number of suprises causing compiletime errpors and runtime errors.
 The key benefit is that with these views,
 programs are way more predictable in behavior and meet the expectations of ordinary programmers.
 This especially helps in generic code that may be used for both containers and views.
+
+In some cases the price may be a potentially worse performance.
+However, the library will provide workarounds (that help locally istead of comprimising basic collection idioms).
 
 This library does not replace the ranges library.
 It only is an alternative for the views in the standard library.
@@ -85,9 +89,13 @@ Usually, it should even be possible to combione both.
 
 ## How to use Belle Views
 
-All you have to do is to use the namespace `bel::views` instead of `std::views`.
+So far, we have only a couple of header files, you have to include and use.
 
-## Examples
+In your code, all you have to do usually is to use the namespace `bel::views` instead of `std::views`.
+However, in some cases you might have or want to do more:
+- Use `bel::views::sub(beg,end)` instead of `std::ranges::subrange{beg,end}`
+
+## Key Examples
 
 Belle views can always iterate over elements even if the views are `const`:
 
