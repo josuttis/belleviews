@@ -1,6 +1,6 @@
 # Belle Views for C++
 
-Belleviews - A library of C++ views that just works.
+Belleviews - A library of C++ views that just works for all basic use cases as expected.
 
 Belleviews are easier to use, more robust,
 and cause less unexpected compile-time and runtime errors
@@ -15,25 +15,37 @@ with optional transformation of the values.
 Views are simple and great to use and the standard ranges library and its implementation
 are a tremendous piece of work.
 
-However, for the standrad views, some design decisions were made
+However, for the standard views, some design decisions were made
 that are confusing and error-prone and cause sever problems
-because these decisions break a couple of basic guarantees that collections
-(such as standard containers) usually have:
-- You might not be able to iterate over the elements of a standard view when the view is const.
+because these decisions break a couple of basic idioms and that collections
+(such as standard containers) usually provide:
+- You might **not be able to iterate** over the elements of a standard view **when the view is const**.
+
   As a consequence:
   - Generic code for both containers and views has to declare the parameters as universal/forwarding references.
-- Concurrent iterations might cause undefined behavior (due to a data race).
+
+- **Concurrent iterations** might cause **undefined behavior** (due to a data race).
+
   This kind of fatal runtime error is not obvious to see.
-- For that reason, using standard views in parallel algorithms is a runtime error (undefined behavior).
-- Iterations that read elements might affect the functional behavior
+
+- For that reason, using standard views in **parallel algorithms is a runtime error** (undefined behavior).
+
+- **Read iterations** might **affect** the functional behavior
    of later iterations.
-- Standard views do not propagate constness.
+
+- Standard views do **not propagate constness**.
    This means that declaring the view const does not declare the elements to be const.
-- For some standard views declaring the elements as const does have no effect.
+
+- For some standard views **declaring the elements as const** does have **no effect**.
+
    You might be able to modify the members of a const element of a view.
-- Copying a view might create a view that has a different state and behavior than the source view.
-- cbegin() and cend() might not make elements const.
-- Type const_iterator is not available.
+
+- **Copying** a view might create a view that has a **different state** and behavior than the source view.
+
+- **`cbegin()`** and `cend()` might **not** make elements **`const`**.
+
+- Type **const_iterator** is **not available**.
+
 - A standard view is not always a pure subset restricting or dealing with the elements of a range,
    but not providing opeionts the range would not provide.
    They might remove constraints and provide options, the range itself does not have. 
