@@ -121,8 +121,8 @@ class transform_view : public std::ranges::view_interface<transform_view<V, F>>
 
           constexpr decltype(auto)
           operator*() const
-            noexcept(noexcept(std::__invoke(*_M_parent->_M_fun, *_M_current)))
-          { return std::__invoke(*_M_parent->_M_fun, *_M_current); }
+            noexcept(noexcept(std::invoke(*_M_parent->_M_fun, *_M_current)))
+          { return std::invoke(*_M_parent->_M_fun, *_M_current); }
 
           constexpr _Iterator&
           operator++()
@@ -175,7 +175,7 @@ class transform_view : public std::ranges::view_interface<transform_view<V, F>>
           constexpr decltype(auto)
           operator[](difference_type __n) const
             requires std::ranges::random_access_range<_Base>
-          { return std::__invoke(*_M_parent->_M_fun, _M_current[__n]); }
+          { return std::invoke(*_M_parent->_M_fun, _M_current[__n]); }
 
           friend constexpr bool
           operator==(const _Iterator& __x, const _Iterator& __y)
@@ -325,10 +325,10 @@ class transform_view : public std::ranges::view_interface<transform_view<V, F>>
     return _Iterator<false>{this, std::ranges::begin(_M_base)};
   }
 
-  constexpr _Iterator<true> begin() const requires std::ranges::range<const V>
+  constexpr auto begin() const requires std::ranges::range<const V>
                                                     && std::regular_invocable<const F&,
                                                                               std::ranges::range_reference_t<const V>> {
-    return _Iterator<true>{this, std::ranges::begin(_M_base)};
+    return make_const_iterator(_Iterator<true>{this, std::ranges::begin(_M_base)});
   }
 
   constexpr _Sentinel<false> end() {
@@ -339,16 +339,16 @@ class transform_view : public std::ranges::view_interface<transform_view<V, F>>
     return _Iterator<false>{this, std::ranges::end(_M_base)};
   }
 
-  constexpr _Sentinel<true> end() const requires std::ranges::range<const V>
+  constexpr auto end() const requires std::ranges::range<const V>
                                                   && std::regular_invocable<const F&,
                                                                             std::ranges::range_reference_t<const V>> {
-    return _Sentinel<true>{std::ranges::end(_M_base)};
+    return make_const_sentinel(_Sentinel<true>{std::ranges::end(_M_base)});
   }
 
-  constexpr _Iterator<true> end() const requires std::ranges::common_range<const V>
+  constexpr auto end() const requires std::ranges::common_range<const V>
                                                   && std::regular_invocable<const F&,
                                                                             std::ranges::range_reference_t<const V>> {
-    return _Iterator<true>{this, std::ranges::end(_M_base)};
+    return make_const_iterator(_Iterator<true>{this, std::ranges::end(_M_base)});
   }
 
   constexpr auto size() requires std::ranges::sized_range<V> {

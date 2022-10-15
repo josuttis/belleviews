@@ -103,10 +103,11 @@ int main()
   auto v3std = coll | std::views::transform(square);
   print(v3std);                           // compile-time ERROR
 
-  auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
-  std::cout << "sumUB: " << sumUB << '\n';
-  auto sumOK = printAndAccum(v3);           // OK
-  std::cout << "sumOK: " << sumOK << '\n';
+  // VC++ only: not for input iterators:
+  //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
+  //std::cout << "sumUB: " << sumUB << '\n';
+  //auto sumOK = printAndAccum(v3);           // OK
+  //std::cout << "sumOK: " << sumOK << '\n';
 
   // **** test const propagation:
   std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
@@ -223,7 +224,8 @@ int main()
   // initialize collection with pairs of int as elements:
   std::vector<std::pair<int,int>> vecPairs{{1,0}, {5,3}, {2,2}, {4,1}, {2,7}};
   auto printPairs = [] (const auto& coll) {
-    for (auto& elem : coll) {
+    //for (auto& elem : coll) {  // ERROR: GOOD!
+    for (const auto& elem : coll) {
       std::cout << elem.first << '/' << elem.second << ' ';
     }
     std::cout << '\n';
@@ -235,6 +237,7 @@ int main()
     return elem.first > elem.second ? elem.second : elem.first;
   };
   for (auto&& member : vecPairs | bel::views::transform(lessOf1st2nd)) {
+    static_assert(!std::is_const_v<std::remove_reference_t<decltype(member)>>);
     ++member;
   }
   printPairs(vecPairs);
@@ -242,6 +245,7 @@ int main()
   // std behavior: const has no effect:
   const auto cvStd = vecPairs | std::views::transform(lessOf1st2nd);
   for (auto&& member : cvStd) {
+    static_assert(!std::is_const_v<std::remove_reference_t<decltype(member)>>);
     ++member;
   }
   printPairs(vecPairs);
@@ -249,8 +253,10 @@ int main()
   // TODO: SHOULD NOT COMPILE: bel behavior: const makes elements const:
   const auto cvBel = vecPairs | bel::views::transform(lessOf1st2nd);
   for (auto&& member : cvBel) {
-    ++member;
+    static_assert(std::is_const_v<std::remove_reference_t<decltype(member)>>);
+    //++member;   // ERROR GOOD!
   }
-  printPairs(vecPairs);
+  //printPairs(vecPairs);
+  print(cvBel);  
 }
 

@@ -29,6 +29,7 @@
 #define BELLEVIEWS_HPP
 
 #include "makeconstiterator.hpp"
+#include <optional>
 
 namespace belleviews::_intern {
 
