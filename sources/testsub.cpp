@@ -55,6 +55,24 @@ int main()
   auto v2 = bel::views::sub(++coll.begin(), --coll.end());
   print(v2);
 
+  // **** test const propagation:
+  {
+    std::cout << "test const propagation:\n";
+    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+    print(vec);
+    auto v = bel::views::sub(++++vec.begin(), --vec.end());
+    for (auto&& elem : v) {
+      static_assert(!std::is_const_v<std::remove_reference_t<decltype(elem)>>);
+      elem = elem * elem;
+    }
+    print(vec);
+    const auto vc = bel::views::sub(++++vec.begin(), --vec.end());
+    for (auto&& elem : vc) {
+      static_assert(std::is_const_v<std::remove_reference_t<decltype(elem)>>);
+      //elem = elem * elem;  // ERROR
+    }
+  }
+
   /*
   //print(coll | std::views::drop(2));  // ERROR withg standard views
   auto v3 = coll | bel::views::drop(2);
@@ -68,123 +86,7 @@ int main()
 
   //auto v6 = coll | std::views::take(6) | bel::views::drop(2) | std::views::take(2);
   //print(v6);
-
-  // **** compare with std::views::drop():
-  auto v1std = std::ranges::drop_view{coll, 2};
-  //print(v1std);                           // compile-time ERROR
-
-  auto v3std = coll | std::views::drop(2);
-  //print(v3std);                           // compile-time ERROR
-
-  //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
-  //std::cout << "sumUB: " << sumUB << '\n';
-  auto sumOK = printAndAccum(v3);           // OK
-  std::cout << "sumOK: " << sumOK << '\n';
-
-
-  // **** test const propagation:
-  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
-  print(arr);
-
-  const auto& arr_std_cref = arr | std::views::drop(2);
-  *arr_std_cref.begin() += 100;           // OOPS: compiles 
-  // with array<const int, 8>:
-  //   error: no match for 'operator+=' (operand types are 'const int' and 'int')
-  print(arr);
-
-  const auto& arr_bel_cref = arr | bel::views::take(6);
-  // *arr_bel_cref.begin() += 100;   // ERROR (good)
-                                      //  no match for 'operator+=' (operand types are 'const std::complex<double>' and 'int')
-  assert(std::is_const_v<std::remove_reference_t<decltype(*arr_bel_cref.begin())>>);
-  print(arr);
-
-
-  // **** caching works as expected: 
-  {
-    std::vector vec{1, 2, 3, 4, 5};
-    testDropCache("std::views::drop() on vector", vec, vec | std::views::drop(2));
-  }
-  {
-    std::list lst{1, 2, 3, 4, 5};
-    testDropCache("std::views::drop() on list", lst, lst | std::views::drop(2));
-  }
-  {
-    std::list lst{1, 2, 3, 4, 5};
-    testDropCache("bel::views::drop() on list", lst, lst | bel::views::drop(2));
-  }
-
-
-  // test const propagation:
-  // - usually we can modify elements:
-  auto&& dr0 =  arr | bel::views::drop(2);
-  dr0[0] = 42;     // OK
-  static_assert(SupportsAssign<decltype(dr0[0]), int>);
-  // - but not if view is const:
-  const auto& drConst =  arr | bel::views::drop(2);
-  //drConst[0] = 42;     // ERROR
-  if constexpr (SupportsAssign<decltype(drConst[0]), int>) {     // ERROR
-    std::cerr << "TEST FAILED: can assign so const not propagated\n";
-  }
-  else {
-    std::cerr << "OK: can't assign, so const is propagated\n";
-  }
-  static_assert(!SupportsAssign<decltype(drConst[0]), int>);
-  // - NOTE: a non-const copy of the view can modify elements again: 
-  auto dr2 = drConst;
-  dr2[0] = 42;     // !!!
-  static_assert(SupportsAssign<decltype(dr2[0]), int>);
-
-  // const views should be common range if possible:
-  static_assert(std::ranges::common_range<decltype(arr)>);
-  static_assert(std::ranges::common_range<decltype(dr0)>);
-  //std::cout << typeid(drConst.begin()).name() << '\n';
-  //std::cout << typeid(drConst.end()).name() << '\n';
-  static_assert(std::ranges::common_range<decltype(drConst)>);
-  std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
-  const auto& drLst =  lst | bel::views::take(6);
-  static_assert(!std::ranges::common_range<decltype(drLst)>);
-
-  // bel drop view IS a borrowed range if the underlying range is (same as in std drop view):
-  auto getVec = [] {
-    return std::vector<std::string>{"one", "two", "three"};
-  };
-  auto vec = getVec();
-  auto vVecStd = vec | std::views::drop(2);
-  static_assert(std::ranges::borrowed_range<decltype(vVecStd)>);
-  auto vVecBel = vec | bel::views::drop(2);
-  static_assert(std::ranges::borrowed_range<decltype(vVecBel)>);
-  auto vTmpVecStd = getVec() | std::views::drop(2);
-  static_assert(!std::ranges::borrowed_range<decltype(vTmpVecStd)>);
-  auto vTmpVecBel = getVec() | bel::views::drop(2);
-  static_assert(!std::ranges::borrowed_range<decltype(vTmpVecBel)>);
-
-  // example at README.md:
-  {
-    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
-    print(vec);
-    const auto& vStd = vec | std::views::drop(2);
-    vStd[0] += 42;        // OOPS: modifies 1st element in vec
-    print(vec);
-    const auto& vBel = vec | bel::views::drop(2);
-    //vBel[0] += 42;      // ERROR
-    auto vBel2 = vBel;    // NOTE: removes constness
-    vBel2[0] += 42;       // OK
-    print(vec);
-  }
-
-  // from README.md:
-  {
-    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
-
-    auto vStd = vec | std::views::drop(2);
-    auto sum1 = std::reduce(std::execution::par,      // RUNTIME ERROR (possible data race)
-                            vStd.begin(), vStd.end(),
-                            0L);
-    auto vBel = vec | bel::views::drop(2);
-    auto sum2 = std::reduce(std::execution::par,      // OK
-                            vBel.begin(), vBel.end(),
-                            0L);
-  }
   */
+
 }
 

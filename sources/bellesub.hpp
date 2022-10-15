@@ -113,15 +113,25 @@ class sub_view : public std::ranges::view_interface<sub_view<_It, _Sent, _Kind>>
         operator _PairLike() const
         { return _PairLike(_M_begin, _M_end); }
 
-      constexpr _It
-      begin() const requires std::copyable<_It>
-      { return _M_begin; }
+      // begin():
+      constexpr _It begin() requires std::copyable<_It> {
+        return _M_begin;
+      }
+      constexpr auto begin() const requires std::copyable<_It> {
+        return make_const_iterator(_M_begin);
+      }
 
-      [[nodiscard]] constexpr _It
-      begin() requires (!std::copyable<_It>)
-      { return std::move(_M_begin); }
+      [[nodiscard]] constexpr _It begin() requires (!std::copyable<_It>) {
+        return std::move(_M_begin); 
+      }
 
-      constexpr _Sent end() const { return _M_end; }
+      // end():
+      constexpr _Sent end() {
+        return _M_end;
+      }
+      constexpr auto end() const {
+        return make_const_sentinel(_M_end); 
+      }
 
       constexpr bool empty() const { return _M_begin == _M_end; }
 
