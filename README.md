@@ -51,7 +51,7 @@ because these decisions break a couple of basic idioms and that collections
    They might remove constraints and provide options, the range itself does not have. 
 
 This make the use of views error-prone, confusing and programmers might easily create fatal runtime errors
-wihtout being noticing it.
+without being aware of it.
 
 There are reasons for this behavior:
 - The key problem is the decision that views might cache begin() so that
@@ -66,11 +66,12 @@ There are reasons for this behavior:
   (Don't get me wrong; you could and can always implement collection types that
    do not propagate constness; however, not everythign you can do as an expert is usefull for the mass.)
 
-We can do better.
+However, the the mass these are too many compromises for not enough value.
+For the mass, we can do better.
 
 Unfortunately, it is too late to fix standard views anymore.
 
-So as an alternative for the standard views, this library is implemented.
+For this reason, as an alternative for the standard views, this library is implemented.
 It provides views that are simple to use and reduce the number of suprises causing compiletime errpors and runtime errors.
 In some special cases the price may be a potentially worse performance.
 However, the library will provide workarounds.
@@ -80,7 +81,7 @@ This especially helps in generic code that may be used for both containers and v
 
 This library does not replace the ranges library.
 It only is an alternative for the views in the standard library.
-Usually, it should be possible to combione both.
+Usually, it should even be possible to combione both.
 
 ## How to use Belle Views
 
@@ -204,7 +205,6 @@ For more examples, see in sources all the test code.
   - We could make views borrowed if they don't own a range, but the question is whether it is worth it
 
   
-  
 ## Status
 
 Available:
@@ -233,7 +233,7 @@ OPEN TOPICS:
 
 ## Tests
 
-TODO
+See the programs `test*.cpp` in directory sources.
 
 ## More
 
@@ -246,10 +246,11 @@ see
 
 ## Acknowledgements
 
-This library could not have been implemented without the tremendous work of the ranges library,
+This library could not have been implemented without the tremendous work of
+the designers and the implementors of the ranges library,
 which becmane part of the C++ standard in C++20.
-It is build on top of it.
-So many many thanke for all who worked on this libary.
+This library is build on top of it.
+So many many thanks for all who worked on this libary.
 
 ## Feedback
 
