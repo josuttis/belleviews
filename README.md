@@ -185,8 +185,8 @@ Available:
 - `drop_view` and `drop()`
 - `take_view` and `take()`
 - `filter_view` and `filter()`
-- `transform_view` (without const propagation yet)
-- `sub_view`, the new subrange with factory sub(beg,end) (without const propagation yet)
+- `transform_view` and `transform()`
+- `sub_view` (new subrange) with factory `sub(beg,end)`
 
 ### ToDo
 
