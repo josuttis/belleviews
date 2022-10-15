@@ -159,14 +159,14 @@ For more examples, see in sources all the test code.
 
 ## Design decisions
 
-###Goals:
+**Goals:**
 
 - Usability (simplicity, consistency, and a lot of use cases that standard views do (surprisingly) not support should just work)
 - Safety (a couple of non-intuitive cases for undefined behavior should no longer occur)
 - Performance (the library should stll have good performance)
 - Predictability (common use cases should work as expected)
 
-###Principles:
+**Principles:**
 
 - **Iterating over a view is stateless**
   - You can always iterate when the view is const
@@ -184,7 +184,7 @@ For more examples, see in sources all the test code.
 
 - **Consistent naming**
 
-  - For example, we have the view **`sub_view`** instead of `subrange'.
+  - For example, we have the view **`sub_view`** instead of `subrange`.
 
 - **For all view types there is an adaptor/factory** so that you never need to use view types directly
 
@@ -194,11 +194,11 @@ For more examples, see in sources all the test code.
 
   - E.g., allow elements_view to use any type with a tuple-like API, not just std::tuple and std::pair 
 
-###Open:
+**Open:**
 
 - Shall we stil support implicit conversion to a ref_view?
 
-###Still:
+**Still:**
 
 - Views might be borrowed or might be not
   - We could make views borrowed if they don't own a range, but the question is whether it is worth it
