@@ -31,8 +31,6 @@ In fact, **C++ standard views have the following problems:**
 
   This kind of fatal runtime error is not obvious to see.
 
-- For that reason, using standard views in **parallel algorithms is a runtime error** (undefined behavior).
-
 - **Read iterations** might **affect** the functional behavior
    of later iterations.
 
