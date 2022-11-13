@@ -209,6 +209,7 @@ namespace belleviews::_intern {
 
 #include "belletake.hpp"
 #include "belledrop.hpp"
+#include "belledropwhile.hpp"
 #ifdef BEL_BORROWED
 #include "bellefilterborrowed.hpp"
 #else
@@ -216,5 +217,6 @@ namespace belleviews::_intern {
 #endif
 #include "bellesub.hpp"
 #include "belleall.hpp"
+#include "belleeagerbegin.hpp"
 
 #endif // BELLEVIEWS_HPP

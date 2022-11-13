@@ -142,16 +142,23 @@ Thus, for standard views, even a pure reading iteration might change or even inv
 
 Belle views support concurrent read iterations for all views:
 
-    std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
+    std::list coll{1, 2, 3, 4, 5, 6, 7, 8};    // no random-access range
 
-    auto vStd = vec | std::views::drop(2);
-    auto sum1 = std::reduce(std::execution::par,      // RUNTIME ERROR (possible data race)
-                            vStd.begin(), vStd.end(),
-                            0L);
-    auto vBel = vec | bel::views::drop(2);
-    auto sum2 = std::reduce(std::execution::par,      // OK
-                            vBel.begin(), vBel.end(),
-                            0L);
+    auto vStd = coll | std::views::drop(2);    // standard drop view
+    std::jthread t1{[&] {
+      for (const auto& elem : vStd) {          // vStd.begin() in separate thread
+        std::cout << elem << '\n';
+      }}};
+    auto cnt1 = std::ranges::count_if(vStd,    // Runtime ERROR (data race)
+                                      [](int i) {return i < 0;});  
+    
+    auto vBel = coll | bel::views::drop(2);    // belle drop view
+    std::jthread t2{[&] {
+      for (const auto& elem : vBel) {          // vBel.begin() in separate thread
+        std::cout << elem << '\n';
+      }}};
+    auto cnt2 = std::ranges::count_if(vBel,    // OK
+                                      [](int i) {return i < 0;});  
 
 Belle views are more consistent and complete.
 For example, you have consistent names of all view types
@@ -219,6 +226,7 @@ Available:
 - `take_view` and `take()`
 - `filter_view` and `filter()`
 - `transform_view` and `transform()`
+- `drop_while_view` and `drop_while()`
 - `sub_view` (new subrange) with factory `sub(beg,end)`
 
 ### ToDo
