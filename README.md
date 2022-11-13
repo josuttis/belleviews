@@ -227,7 +227,7 @@ Available:
 - `filter_view` and `filter()`
 - `transform_view` and `transform()`
 - `drop_while_view` and `drop_while()`
-- `sub_view` (new subrange) with factory `sub(beg,end)`
+- `sub_view` (a.k.a `bel::subrange`) with factory `sub(beg,end)`
 
 ### ToDo
 

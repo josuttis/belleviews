@@ -281,4 +281,14 @@ namespace bel::views {
   inline constexpr belleviews::_Sub sub;
 }
 
+// allows to use bel::subrange instead of belleviews::sub_view
+namespace bel {
+  template<std::input_or_output_iterator _It, std::sentinel_for<_It> _Sent = _It,
+           belleviews::subrange_kind _Kind = std::sized_sentinel_for<_Sent, _It>
+                                              ? belleviews::subrange_kind::sized
+                                              : belleviews::subrange_kind::unsized>
+  requires (_Kind == belleviews::subrange_kind::sized || !std::sized_sentinel_for<_Sent, _It>)
+  using subrange = belleviews::sub_view<_It, _Sent, _Kind>;
+}
+
 #endif // BELLESUB_HPP

@@ -49,11 +49,17 @@ int main()
   print(coll);
 
   //**** test functionality:
-  auto v1 = belleviews::sub_view{++coll.begin(), --coll.end()};
+  belleviews::sub_view v1{++coll.begin(), --coll.end()};
   print(v1);
 
-  auto v2 = bel::views::sub(++coll.begin(), --coll.end());
+  bel::subrange v2{++coll.begin(), --coll.end()};
   print(v2);
+
+  auto v3 = belleviews::sub_view{++coll.begin(), --coll.end()};
+  print(v3);
+
+  auto v4 = bel::views::sub(++coll.begin(), --coll.end());
+  print(v4);
 
   // **** test const propagation:
   {
