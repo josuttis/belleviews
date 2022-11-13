@@ -34,7 +34,7 @@ void printUniversal(auto&& coll) {
   printUniversal("", std::forward<decltype(coll)>(coll));
 }
 
-auto printAndAccum(auto&& coll)
+auto concurrentPrintAndAccum(auto&& coll)
 {
   // one thread prints:
   std::jthread t1{[&] { printUniversal("", coll); }};
@@ -133,6 +133,15 @@ void testBasics()
   static_assert(!std::ranges::borrowed_range<decltype(vVecStd)>);
   auto vVecBel = vec | bel::views::filter([](const auto& s){return s[0] == 't';});
   static_assert(!std::ranges::borrowed_range<decltype(vVecBel)>);
+
+  // category:
+  {
+    std::vector vec{1, 2, 3, 4};
+    static_assert(std::ranges::random_access_range<decltype(vec)>);
+    auto v = vec | std::views::filter(times3);
+    static_assert(std::ranges::bidirectional_range<decltype(v)>);
+    static_assert(!std::ranges::random_access_range<decltype(v)>);
+  }
 }
 
 
@@ -191,10 +200,17 @@ void testCaching()
 
 void testConcurrentIteration()
 {
-  //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
-  //std::cout << "sumUB: " << sumUB << '\n';
-  //auto sumOK = printAndAccum(v3);           // ERROR
-  //auto sumOK = printAndAccum(v3 | std::views::common);           // OK
+  std::list coll{1, 2, 3, 4, 5, 6, 7, 8};           // no random-access range
+  static_assert(!std::ranges::random_access_range<decltype(coll)>);
+
+  // test concurrent read iterations:
+  auto v3Std = coll | std::views::filter(notTimes3);
+  //auto sumUB = concurrentPrintAndAccum(v3std);             // RUNTIME ERROR with std views
+
+  auto v3 = coll | bel::views::filter(notTimes3);
+  auto sumOK = concurrentPrintAndAccum(v3);                  // OK with belle views
+  std::cout << "sumOK: " << sumOK << '\n';
+  sumOK = concurrentPrintAndAccum(v3 | std::views::common);  // OK with belle views
   //std::cout << "sumOK: " << sumOK << '\n';
 }
 

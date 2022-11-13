@@ -47,16 +47,38 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 }
 */
 
+namespace _intern
+{
+  template<typename _Base>
+  struct filter_view_iter_cat {
+  };
+
+  template<std::ranges::forward_range Base>
+  struct filter_view_iter_cat<Base> {
+   private:
+    static auto _S_iter_cat() {
+      using _Cat = typename std::iterator_traits<std::ranges::iterator_t<Base>>::iterator_category;
+      if constexpr (std::derived_from<_Cat, std::bidirectional_iterator_tag>)
+        return std::bidirectional_iterator_tag{};
+      else if constexpr (std::derived_from<_Cat, std::forward_iterator_tag>)
+        return std::forward_iterator_tag{};
+      else
+        return _Cat{};
+    }
+   public:
+    using iterator_category = decltype(_S_iter_cat());
+  };
+} // namespace _intern
+
 template<std::ranges::input_range V,
          std::indirect_unary_predicate<std::ranges::iterator_t<V>> Pred>
 requires std::ranges::view<V> && std::is_object_v<Pred>
 class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 {
  private:
-  struct Iterator //: __detail::__filter_view_iter_cat<V>
+  struct Iterator : _intern::filter_view_iter_cat<V>
   {
    private:
-    /* TODO:
     static constexpr auto _S_iter_concept() {
       if constexpr (std::ranges::bidirectional_range<V>)
         return std::bidirectional_iterator_tag{};
@@ -65,27 +87,26 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       else
         return std::input_iterator_tag{};
     }
-    */
+
+   public:
+    using iterator_concept = decltype(_S_iter_concept());
+    //using iterator_category = FROM BASE CLASS _intern::filter_view_iter_cat<V>
+    using value_type = std::ranges::range_value_t<V>;
+    using difference_type = std::ranges::range_difference_t<V>;
 
    private:
     friend filter_view;
     using VIterT = std::ranges::iterator_t<V>;
-    VIterT current_ = VIterT();  // exposition only
-    filter_view* filterViewPtr = nullptr;                         // exposition only
-    //V base_ = V();   // no def constr for ref view
-    std::optional<V> base_ = {};
-    //[[no_unique_address]] _intern::box<Pred> pred_;
+    const filter_view* filterViewPtr = nullptr;           // view we iterate over
+    VIterT current_ = VIterT();                           // current position
+    std::optional<V> base_ = {};                          // view my not be def.constructible
+    //[[no_unique_address]] _intern::box<Pred> pred_;     // TODO: better?
     Pred pred_;
 
    public:
-    //using iterator_concept = see below ;
-    //using iterator_category = see below ;
-    using value_type = std::ranges::range_value_t<V>;
-    using difference_type = std::ranges::range_difference_t<V>;
     Iterator() requires std::default_initializable<VIterT> = default;  // requires not in standard
-
-    constexpr Iterator(filter_view* par, VIterT cur)
-     : current_(std::move(cur)), filterViewPtr{par} {
+    constexpr Iterator(filter_view* pFv, VIterT cur)
+     : filterViewPtr{pFv}, current_(std::move(cur)) {
     }
 
     constexpr const VIterT& base() const& noexcept {
@@ -146,10 +167,9 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
   };
 
-  struct ConstIterator //: __detail::__filter_view_iter_cat<V>
+  struct ConstIterator : _intern::filter_view_iter_cat<V>
   {
    private:
-    /* TODO:
     static constexpr auto _S_iter_concept() {
       if constexpr (std::ranges::bidirectional_range<V>)
         return std::bidirectional_iterator_tag{};
@@ -158,27 +178,26 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
       else
         return std::input_iterator_tag{};
     }
-    */
+
+   public:
+    using iterator_concept = decltype(_S_iter_concept());
+    //using iterator_category = FROM BASE CLASS _intern::filter_view_iter_cat<V>
+    using value_type = std::ranges::range_value_t<V>;
+    using difference_type = std::ranges::range_difference_t<V>;
 
    private:
     friend filter_view;
     using VIterT = _intern::const_iterator_t<V>;
-    VIterT current_ = VIterT();  // exposition only
-    const filter_view* filterViewPtr = nullptr;                         // exposition only
-    //V base_ = V();   // no def constr for ref view
-    std::optional<V> base_ = {};
-    //[[no_unique_address]] _intern::box<Pred> pred_;
+    const filter_view* filterViewPtr = nullptr;           // view we iterate over
+    VIterT current_ = VIterT();                           // current position
+    std::optional<V> base_ = {};                          // view my not be def.constructible
+    //[[no_unique_address]] _intern::box<Pred> pred_;     // TODO: better?
     Pred pred_;
 
    public:
-    //using iterator_concept = see below ;
-    //using iterator_category = see below ;
-    using value_type = std::ranges::range_value_t<V>;
-    using difference_type = std::ranges::range_difference_t<V>;
     ConstIterator() requires std::default_initializable<VIterT> = default;  // requires not in standard
-
-    constexpr ConstIterator(const filter_view* par, VIterT cur)
-     : current_(std::move(cur)), filterViewPtr{par} {
+    constexpr ConstIterator(const filter_view* pFv, VIterT cur)
+     : filterViewPtr{pFv}, current_(std::move(cur)) {
     }
 
     constexpr const VIterT& base() const& noexcept {

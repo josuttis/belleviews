@@ -34,7 +34,7 @@ void printUniversal(auto&& coll) {
   printUniversal("", std::forward<decltype(coll)>(coll));
 }
 
-auto printAndAccum(auto&& coll)
+auto concurrentPrintAndAccum(auto&& coll)
 {
   // one thread prints:
   std::jthread t1{[&] { printUniversal("", coll); }};
@@ -197,12 +197,12 @@ void testConcurrentIteration()
 
   // test concurrent read iterations:
   auto v3Std = coll | std::views::drop_while(notTimes3);
-  //auto sumUB = printAndAccum(v3std);              // runtime ERROR (undefined behavior)
+  //auto sumUB = concurrentPrintAndAccum(v3std);             // RUNTIME ERROR with std views
 
   auto v3 = coll | bel::views::drop_while(notTimes3);
-  auto sumOK = printAndAccum(v3);                   // OK
+  auto sumOK = concurrentPrintAndAccum(v3);                  // OK with belle views
   std::cout << "sumOK: " << sumOK << '\n';
-  sumOK = printAndAccum(v3 | std::views::common);   // OK
+  sumOK = concurrentPrintAndAccum(v3 | std::views::common);  // OK with belle views
   std::cout << "sumOK: " << sumOK << '\n';
 }
 
