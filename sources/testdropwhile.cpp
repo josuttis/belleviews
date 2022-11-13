@@ -10,6 +10,9 @@
 #include <execution>
 #include "belleviews.hpp"
 
+auto times3 = [] (auto x) { return x % 3 == 0; };
+auto notTimes3 = [] (auto x) { return x % 3 != 0; };
+
 
 void printConst(const auto& coll)
 {
@@ -74,8 +77,6 @@ void testBasics()
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};
   printConst(coll);
 
-  auto notTimes3 = [] (auto x) { return x % 3 != 0; };
-
   //auto v1 = std::ranges::drop_while_view{coll, notTimes3};
   auto v1 = belleviews::drop_while_view{coll, notTimes3};
   printUniversal(v1);    // as the C++ standard requires
@@ -94,12 +95,12 @@ void testBasics()
   printConst(v5);
 
   // test with standard views:
-  auto v6Std = coll | std::views::drop(3) | std::views::drop_while(notTimes3);
-  printUniversal(v6Std);
-  //TODO: auto v6 = coll | std::views::drop(3) | std::views::drop_while(notTimes3);  // ERROR
-  //TODO: printConst(v6);
+  auto v6 = coll | std::views::drop(3) | std::views::drop_while(notTimes3);
+  //printConst(v6);   // ERROR (standard views disables const printing) 
+  printUniversal(v6);
+
   auto v7 = coll | bel::views::drop_while(notTimes3) | std::views::take(2);
-  printConst(v7);
+  printConst(v7);     // OK
 
   // test with common and non-common range:
   {
@@ -138,7 +139,6 @@ void testConstPropagation()
   // **** test const propagation:
   std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
   printConst(arr);
-  auto notTimes3 = [] (auto x) { return x % 3 != 0; };
 
   // - usually we can modify elements:
   auto&& tr0 =  arr | bel::views::drop_while(notTimes3);
@@ -190,10 +190,8 @@ void testCaching()
 }
 
 
-void testConcurrentReads()
+void testConcurrentIteration()
 {
-  auto notTimes3 = [] (auto x) { return x % 3 != 0; };
-
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};           // no random-access range
   static_assert(!std::ranges::random_access_range<decltype(coll)>);
 
@@ -238,6 +236,7 @@ int main()
   testBasics();
   testConstPropagation();
   testCaching();
+  testConcurrentIteration();
   testReadme();
 }
 

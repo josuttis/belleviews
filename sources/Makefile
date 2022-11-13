@@ -6,31 +6,15 @@ include Makefile.h
 # generic rules for special module suffixes
 ###########################################
 
-.SUFFIXES: .cppm .cppp .obj .ixx
-.ixx.obj:
-	@echo ""
-	cl $(CXXFLAGSWINL) /TP /c /interface $*.ixx $(IFCDIRFLAGS)
-	@echo "=== $*.obj done"
-	@echo ""
-.cppm.obj:
-	@echo ""
-	cl $(CXXFLAGSWINL) /TP /c /interface $*.cppm $(IFCDIRFLAGS)
-	@echo "=== $*.obj done"
-	@echo ""
-.cppp.obj:
-	@echo ""
-	cl $(CXXFLAGSWINL) /TP /c /internalPartition $*.cppp $(IFCDIRFLAGS)
-	@echo "=== $*.obj done"
-	@echo ""
-.cpp.obj:
-	@echo ""
-	cl $(CXXFLAGSWINL) /c $*.cpp $(IFCDIRFLAGS)
-	@echo "=== $*.obj done"
-	@echo ""
+bel: belle
+belle:: testall.20 testdrop.20 testtake.20 testdropwhile.20 testfilter.20 testtransform.20
+belle:: testsub.20
+belle:: testdropwhile.20
 
-###########################################
-# targets for Visual C++ and GCC
-###########################################
+bel.win: belle.win
+belle.win:: testall.winL testdrop.winL testtake.winL testdropwhile.winL testfilter.winL testtransform.winL
+belle.win:: testsub.winL
+belle.win:: testdropwhile.winL
 
 modall.win: modall_part.cppm modall_ifpart.cppm modall_if.cppm modall_impl.cpp modall_test.cpp
 	@echo ""

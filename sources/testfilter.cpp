@@ -10,8 +10,11 @@
 #include <execution>
 #include "belleviews.hpp"
 
+auto times3 = [] (auto x) { return x % 3 == 0; };
+auto notTimes3 = [] (auto x) { return x % 3 != 0; };
 
-void print(const auto& coll)
+
+void printConst(const auto& coll)
 {
   for (const auto& elem : coll) {
     std::cout << elem << ' ';
@@ -27,12 +30,15 @@ void printUniversal(const std::string& msg, auto&& coll)
   }
   std::cout << '\n';
 }
+void printUniversal(auto&& coll) {
+  printUniversal("", std::forward<decltype(coll)>(coll));
+}
 
 auto printAndAccum(auto&& coll)
 {
-  std::jthread t1{[&] {
-                    printUniversal("", coll);
-                  }};
+  // one thread prints:
+  std::jthread t1{[&] { printUniversal("", coll); }};
+  // this thead compute the sum (parallel call of begin()):
   std::ranges::range_value_t<decltype(coll)> sum{};
   sum = std::reduce(std::execution::par,
                     coll.begin(), coll.end(),
@@ -65,47 +71,98 @@ template<typename T, typename T2>
 concept SupportsAssign = requires (T x, T2 y) { x = y; };
 
 
-int main()
+void testBasics()
 {
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};
-  print(coll);
-
-  //**** test functionality:
-  auto notTimes3 = [] (auto x) {
-                  return x % 3 != 0;
-                };
+  printConst(coll);
 
   //auto v1 = std::ranges::filter_view{coll, notTimes3};
   auto v1 = belleviews::filter_view{coll, notTimes3};
-  print(v1);
+  printUniversal(v1);
+  printConst(v1);
 
   auto v2 = bel::views::filter(coll, notTimes3);
-  print(v2);
+  printConst(v2);
 
   auto v3 = coll | bel::views::filter(notTimes3);
-  print(v3);
+  printConst(v3);
 
-  auto v4 = coll | bel::views::drop(2) | bel::views::filter(notTimes3);  // ERROR: can't pass it to std filter
-  print(v4);
+  // test wioth other belle views:
+  auto v4 = coll | bel::views::drop(2) | bel::views::filter(notTimes3);
+  printConst(v4);
 
-  /*
-   * TODO:
-  auto v5 = coll | bel::views::drop(2) | std::views::filter(notTimes3);  // ERROR: can't pass it to std filter
-  print(v5);
+  auto v5 = coll | bel::views::take(6) | bel::views::filter(notTimes3) | bel::views::take(2);
+  printConst(v5);
 
-  auto v6 = coll | std::views::filter(notTimes3) | bel::views::drop(2);
-  print(v6);
+  // test with standard views:
+  auto v6 = coll | bel::views::drop(2) | std::views::filter(notTimes3);
+  //printConst(v6);   // ERROR (standard views disables const printing) 
+  printUniversal(v6);
 
-  auto v7 = coll | bel::views::take(6) | bel::views::filter(notTimes3) | bel::views::take(2);
-  print(v7);
-  */
+  auto v7 = coll | std::views::filter(notTimes3) | bel::views::drop(2);
+  //printConst(v7);  // ERROR (standard views disables const printing) 
+  printUniversal(v7);  // ERROR
 
-  //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
-  //std::cout << "sumUB: " << sumUB << '\n';
-  //auto sumOK = printAndAccum(v3);           // ERROR
-  //auto sumOK = printAndAccum(v3 | std::views::common);           // OK
-  //std::cout << "sumOK: " << sumOK << '\n';
 
+  // test with common and non-common range:
+  {
+    std::cout << "--- test filter_view on common range:\n"; 
+    auto vCommon = std::views::iota(1, 10);
+    auto vfCommon = vCommon | bel::views::filter(notTimes3);
+    printConst(vCommon);
+    printConst(vfCommon);
+    static_assert(std::ranges::common_range<decltype(vCommon)>);
+    static_assert(std::ranges::common_range<decltype(vfCommon)>);
+  }
+  {
+    std::cout << "--- test filter_view on non-common range:\n"; 
+    auto vNonCommon = std::views::iota(1, 10L);
+    auto vfNonCommon = vNonCommon | bel::views::filter(notTimes3);
+    printConst(vNonCommon);
+    printConst(vfNonCommon);
+    static_assert(!std::ranges::common_range<decltype(vNonCommon)>);
+    static_assert(!std::ranges::common_range<decltype(vfNonCommon)>);
+  }
+
+  // filter view is not a borrowed range:
+  auto getVec = [] {
+    return std::vector<std::string>{"one", "two", "three"};
+  };
+  auto vec = getVec();
+  auto vVecStd = vec | std::views::filter([](const auto& s){return s[0] == 't';});
+  static_assert(!std::ranges::borrowed_range<decltype(vVecStd)>);
+  auto vVecBel = vec | bel::views::filter([](const auto& s){return s[0] == 't';});
+  static_assert(!std::ranges::borrowed_range<decltype(vVecBel)>);
+}
+
+
+void testConstPropagation()
+{
+  //**** test const propagation:
+  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
+  printConst(arr);
+
+  // test const propagation:
+  // - usually we can modify elements:
+  auto&& tr0 =  arr | bel::views::filter(notTimes3);
+  tr0.front() = 42;  // OK
+  // - but not if view is const:
+  const auto& tr1 =  arr | bel::views::filter(notTimes3);
+  //tr1.front() = 42;     // ERROR
+  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
+    std::cerr << "TEST FAILED: can assign so const not propagated\n";
+  }
+  else {
+    std::cerr << "OK: can't assign, so const is propagated\n";
+  }
+  // - NOTE: a non-const copy of the view can modify elements again: 
+  auto tr2 = tr1;
+  tr2.front() = 42;     // !!!
+}
+
+
+void testCaching()
+{
   //**** caching works as expected: 
   {
   auto biggerThan2 = [](auto v) {
@@ -129,32 +186,25 @@ int main()
   }
   }
   std::cout << '\n';
+}
 
-  //**** test const propagation:
-  std::array arr{1, 2, 3, 4, 5, 6, 7, 8};
-  print(arr);
 
-  // test const propagation:
-  // - usually we can modify elements:
-  auto&& tr0 =  arr | bel::views::filter(notTimes3);
-  tr0.front() = 42;  // OK
-  // - but not if view is const:
-  const auto& tr1 =  arr | bel::views::filter(notTimes3);
-  //tr1.front() = 42;     // ERROR
-  if constexpr (SupportsAssign<decltype(tr1.front()), int>) {     // ERROR
-    std::cerr << "TEST FAILED: can assign so const not propagated\n";
-  }
-  else {
-    std::cerr << "OK: can't assign, so const is propagated\n";
-  }
-  // - NOTE: a non-const copy of the view can modify elements again: 
-  auto tr2 = tr1;
-  tr2.front() = 42;     // !!!
+void testConcurrentIteration()
+{
+  //auto sumUB = printAndAccum(v3std);        // runtime ERROR (undefined behavior)
+  //std::cout << "sumUB: " << sumUB << '\n';
+  //auto sumOK = printAndAccum(v3);           // ERROR
+  //auto sumOK = printAndAccum(v3 | std::views::common);           // OK
+  //std::cout << "sumOK: " << sumOK << '\n';
+}
 
-  // example at README.md:
+
+void testReadme()
+{
+  // example in README.md:
   {
     std::vector vec{1, 2, 3, 4, 5};
-    print(vec);
+    printConst(vec);
 
     auto biggerThan2 = [](auto v) {
       return v > 2;
@@ -164,54 +214,24 @@ int main()
     printUniversal("", big2Std);       // OK:  3 4 5
     auto big2Bel = vec | bel::views::filter(biggerThan2);
     //TODO: doesn't compile with VC++:
-    print(big2Bel);                    // OK:  3 4 5
+    printConst(big2Bel);                    // OK:  3 4 5
 
     vec.insert(vec.begin(), {9, 0, -1});
-    print(vec);                        // vec now: 9 0 -1 1 2 3 4 5
+    printConst(vec);                        // vec now: 9 0 -1 1 2 3 4 5
 
     printUniversal("", big2Std);       // OOPS:  -1 3 4 5
     //TODO: doesn't compile with VC++:
-    print(big2Bel);                    // OK:  9 3 4 5
+    printConst(big2Bel);                    // OK:  9 3 4 5
   }
+}
 
-  // test with common and non-common range:
-  {
-    std::cout << "--- test filter_view on common range:\n"; 
-    auto vCommon = std::views::iota(1, 10);
-    auto vfCommon = vCommon | bel::views::filter(notTimes3);
-    print(vCommon);
-    print(vfCommon);
-    static_assert(std::ranges::common_range<decltype(vCommon)>);
-    static_assert(std::ranges::common_range<decltype(vfCommon)>);
-  }
-  {
-    std::cout << "--- test filter_view on non-common range:\n"; 
-    auto vNonCommon = std::views::iota(1, 10L);
-    auto vfNonCommon = vNonCommon | bel::views::filter(notTimes3);
-    print(vNonCommon);
-    print(vfNonCommon);
-    static_assert(!std::ranges::common_range<decltype(vNonCommon)>);
-    static_assert(!std::ranges::common_range<decltype(vfNonCommon)>);
-  }
 
-  std::cout << "sizeof iterator: \n"
-            << " - for array:  " << sizeof(arr.begin()) << '\n'
-            << " - for filter: " << sizeof(tr0.begin()) << '\n';
-
-  // filter view is not a borrowed range:
-  auto getVec = [] {
-    return std::vector<std::string>{"one", "two", "three"};
-  };
-  auto vec = getVec();
-  auto vVecStd = vec | std::views::filter([](const auto& s){return s[0] == 't';});
-  static_assert(!std::ranges::borrowed_range<decltype(vVecStd)>);
-  auto vVecBel = vec | bel::views::filter([](const auto& s){return s[0] == 't';});
-  static_assert(!std::ranges::borrowed_range<decltype(vVecBel)>);
-  //auto pos2 = std::views::filter(vec, [](const auto& s){return s[0] == 't';}).begin();  // OOPS
-  //auto pos3 = std::views::filter(vec, [](const auto& s){return s[0] == 'o';}).begin();  // to overwrite memory
-  //std::cout << * -- ++pos2 << '\n';                                                     // UB
-  //auto pos4 = bel::views::filter(vec, [](const auto& s){return s[0] == 't';}).begin();  // OK
-  //auto pos5 = bel::views::filter(vec, [](const auto& s){return s[0] == 'o';}).begin();  // to overwrite memory
-  //std::cout << * -- ++pos5 << '\n';                                                     // OK
+int main()
+{
+  testBasics();
+  testConstPropagation();
+  testCaching();
+  testConcurrentIteration();
+  testReadme();
 }
 

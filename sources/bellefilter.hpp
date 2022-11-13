@@ -370,7 +370,7 @@ struct _Filter {
      return filter_view{std::forward<Rg>(rg), std::forward<Pred>(pred)};
    }
 
-   // for:  rg | belleviews::filter(pred)
+   // for:  rg | bel::views::filter(pred)
    template<typename T>
    struct PartialFilter {
      T pred;
@@ -384,8 +384,8 @@ struct _Filter {
 
    template<typename Rg, typename Pred>
    friend constexpr auto
-   operator| (Rg&& rg, PartialFilter<Pred> pd) {
-     return filter_view{std::forward<Rg>(rg), pd.pred};
+   operator| (Rg&& rg, PartialFilter<Pred> pf) {
+     return filter_view{std::forward<Rg>(rg), pf.pred};
    }
 };
 

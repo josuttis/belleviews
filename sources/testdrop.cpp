@@ -120,15 +120,15 @@ int main()
   //**** caching works as expected: 
   {
     std::vector vec{1, 2, 3, 4, 5};
-    testDropCache("std::views::drop() on vector", vec, vec | std::views::drop(2));
+    testDropCache("std::views::drop(2) on vector", vec, vec | std::views::drop(2));
   }
   {
     std::list lst{1, 2, 3, 4, 5};
-    testDropCache("std::views::drop() on list", lst, lst | std::views::drop(2));
+    testDropCache("std::views::drop(2) on list", lst, lst | std::views::drop(2));
   }
   {
     std::list lst{1, 2, 3, 4, 5};
-    testDropCache("bel::views::drop() on list", lst, lst | bel::views::drop(2));
+    testDropCache("bel::views::drop(2) on list", lst, lst | bel::views::drop(2));
   }
 
 
@@ -162,19 +162,21 @@ int main()
   const auto& drLst =  lst | bel::views::take(6);
   static_assert(!std::ranges::common_range<decltype(drLst)>);
 
-  // bel drop view IS a borrowed range if the underlying range is (same as in std drop view):
-  auto getVec = [] {
-    return std::vector<std::string>{"one", "two", "three"};
-  };
-  auto vec = getVec();
-  auto vVecStd = vec | std::views::drop(2);
-  static_assert(std::ranges::borrowed_range<decltype(vVecStd)>);
-  auto vVecBel = vec | bel::views::drop(2);
-  static_assert(std::ranges::borrowed_range<decltype(vVecBel)>);
-  auto vTmpVecStd = getVec() | std::views::drop(2);
-  static_assert(!std::ranges::borrowed_range<decltype(vTmpVecStd)>);
-  auto vTmpVecBel = getVec() | bel::views::drop(2);
-  static_assert(!std::ranges::borrowed_range<decltype(vTmpVecBel)>);
+  {
+    // bel drop view IS a borrowed range if the underlying range is (same as in std drop view):
+    auto getVec = [] {
+      return std::vector<std::string>{"one", "two", "three"};
+    };
+    auto vec = getVec();
+    auto vVecStd = vec | std::views::drop(2);
+    static_assert(std::ranges::borrowed_range<decltype(vVecStd)>);
+    auto vVecBel = vec | bel::views::drop(2);
+    static_assert(std::ranges::borrowed_range<decltype(vVecBel)>);
+    auto vTmpVecStd = getVec() | std::views::drop(2);
+    static_assert(!std::ranges::borrowed_range<decltype(vTmpVecStd)>);
+    auto vTmpVecBel = getVec() | bel::views::drop(2);
+    static_assert(!std::ranges::borrowed_range<decltype(vTmpVecBel)>);
+  }
 
   // example at README.md:
   {

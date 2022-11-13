@@ -29,8 +29,8 @@ class drop_view : public std::ranges::view_interface<drop_view<V>>
  public:
   drop_view() requires std::default_initializable<V> = default;
 
-  constexpr drop_view(V b, std::ranges::range_difference_t<V> c)
-   : base_(std::move(b)), count_{c} {
+  constexpr drop_view(V v, std::ranges::range_difference_t<V> c)
+   : base_(std::move(v)), count_{c} {
       assert(c >= 0);
   }
 
@@ -77,7 +77,7 @@ drop_view(R&&, std::ranges::range_difference_t<R>) -> drop_view<std::views::all_
 
 } // namespace belleviews
 
-// borrowed if underlying range is borrows (as with std drop_view):
+// borrowed if underlying range is borrowed (as with std drop_view):
 template<typename Rg>
 inline constexpr bool std::ranges::enable_borrowed_range<belleviews::drop_view<Rg>> = std::ranges::enable_borrowed_range<Rg>;
 
