@@ -140,6 +140,41 @@ Belle views do not cache so that they operate as expected way later than defined
 Note that without the first call of `printUniversal()` the second call would be correct.
 Thus, for standard views, even a pure reading iteration might change or even invalidate later behavior.
 
+Caching also has the effect that a filter view has undefined behavior when used in an iteration
+that modifies the elements (which is in principle allowed):
+
+    std::vector<int> coll{1, 4, 7, 10};
+    auto isEven = [] (auto&& i) { return i % 2 == 0; };
+
+    // standard behavior when incrementing even elements twice:
+    auto collEvenStd = coll | std::views::filter(isEven);
+    print(coll);    // 1 4 7 10
+    for (int& i : collEvenStd) {
+      i += 1;       // ERROR (undefined behavior)
+    }
+    print(coll);    // 1 5 7 11
+    for (int& i : collEvenStd) {
+      i += 1;       // ERROR (undefined behavior)
+    }
+    print(coll);    // 1 6 7 11   (note the 6!)
+
+The problem is that the modification is required not to break the predicate of the filter.
+Otherwise, the standard views have undefined behavior (and bad behavior as you can see).
+
+Again, belleviews do not have this problem:
+
+    // belleviews behavior when incrementing even elements twice:
+    auto collEvenBel = coll | bel::views::filter(isEven);
+    print(coll);    // 1 4 7 10
+    for (int& i : collEvenBel) {
+      i += 1;       // OK
+    }
+    print(coll);    // 1 5 7 11
+    for (int& i : collEvenBel) {
+      i += 1;       // OK
+    }
+    print(coll);    // 1 5 7 11
+
 Belle views support concurrent read iterations for all views:
 
     std::list coll{1, 2, 3, 4, 5, 6, 7, 8};    // no random-access range
@@ -227,22 +262,20 @@ Available:
 - `filter_view` and `filter()`
 - `transform_view` and `transform()`
 - `drop_while_view` and `drop_while()`
-- `sub_view` (a.k.a `bel::subrange`) with factory `sub(beg,end)`
+- `sub_view` (a.k.a. `bel::subrange`) with factory `sub(beg,end)`
 
 ### ToDo
 
-OPEN ISSUES:
+OPEN ISSUES (probably a lot but let's start with some):
 - const sentinel support
   (why does make_const_iterator() not work for sentinels?)
-- make using std views with bel::filter compile
 
 OPEN TOPICS:
-1. Support of remaining basic views: transform (<font color="red">at work</font>)
-1. Support of counted, common
-1. Support of elements, keys,values
+1. Support of counted, common, take_while
+1. Support of elements, keys, values
    - with fix that elements always works on tuple-like APIs
 1. Support of reverse
-1. Additional pipe begin ?
+1. Support of `zip_view` (fix the new C++23 const nightmare there)
 
 
 ## Tests
@@ -262,7 +295,7 @@ see
 
 This library could not have been implemented without the tremendous work of
 the designers and the implementors of the ranges library,
-which becmane part of the C++ standard in C++20.
+which becamne part of the C++ standard in C++20.
 This library is build on top of it.
 So many many thanks for all who worked on this libary.
 

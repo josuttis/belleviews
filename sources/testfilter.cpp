@@ -49,7 +49,7 @@ auto concurrentPrintAndAccum(auto&& coll)
 
 void testFilterCache(const std::string& msg, auto&& coll, auto&& vColl)
 {
-  std::cout << "\n==== testFilterCache() with " << msg << ":\n";
+  std::cout << "\n---- testFilterCache() with " << msg << ":\n";
 
   // insert a new element at the front (=> 1 2 3 4 5)  
   printUniversal("coll: ",  coll);       // OK:  1 2 3 4 5
@@ -241,6 +241,69 @@ void testReadme()
   }
 }
 
+void testFilterMod()
+{
+  std::cout << "\n========== testFilterMod()\n";
+
+  {
+    //*** standard behavior:
+    std::cout << "standard views:\n";
+    std::vector<int> coll{1, 4, 7, 10};
+
+    // view for all even elements of coll:
+    auto isEven = [] (auto&& i) { return i % 2 == 0; };
+    auto collEven = coll | std::views::filter(isEven);
+    std::cout << "  coll:                    ";
+    printConst(coll);
+
+    // modify even elements in coll:
+    for (int& i : collEven) {
+      i += 2; // OK
+    }
+    std::cout << "  even elems +=2:          ";
+    printConst(coll);
+
+    // modify even elements in coll:
+    for (int& i : collEven) {
+      i += 1; // ERROR: undefined behavior because filter predicate is broken
+    }
+    std::cout << "  even elems incremented:  ";
+    printConst(coll);
+
+    // modify even elements in coll:
+    for (int& i : collEven) {
+      i += 1; // ERROR: undefined behavior because filter predicate is broken
+    }
+    std::cout << "  even elems incremented:  ";
+    printConst(coll);
+  }
+
+  {
+    //*** behavior with belle views:
+    std::cout << "belle views:\n";
+    std::vector<int> coll{1, 4, 7, 10};
+
+    // view for all even elements of coll:
+    auto isEven = [] (auto&& i) { return i % 2 == 0; };
+    auto collEven = coll | bel::views::filter(isEven);
+    std::cout << "  coll:                    ";
+    printConst(coll);
+
+    // modify even elements in coll:
+    for (int& i : collEven) {
+      i += 1; // ERROR: undefined behavior because filter predicate is broken
+    }
+    std::cout << "  even elems incremented:  ";
+    printConst(coll);
+
+    // modify even elements in coll:
+    for (int& i : collEven) {
+      i += 1; // ERROR: undefined behavior because filter predicate is broken
+    }
+    std::cout << "  even elems incremented:  ";
+    printConst(coll);
+  }
+}
 
 int main()
 {
@@ -249,5 +312,6 @@ int main()
   testCaching();
   testConcurrentIteration();
   testReadme();
+  testFilterMod();
 }
 
