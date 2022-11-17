@@ -306,8 +306,7 @@ Please use the feedback address of my C++20 book: http://cppstd20.com/feedback
 
 ## License
 
-The code is licensed under a Creative Commons Attribution 4.0 International License.
-
-http://creativecommons.org/licenses/by/4.0/
+The code is licensed under the GNU General Public License version 3.
+[https://gcc.gnu.org/onlinedocs/libstdc++/manual/appendix_gpl.html]
 
 
