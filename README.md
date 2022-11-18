@@ -222,7 +222,7 @@ For more examples, see in sources all the test code.
   - You can iterate concurrently
   - Iterating does not have any impact on later behavior (except with modifications, of course)
 
-- **Respect and honor constnessa**
+- **Respect and honor constness**
   - Views always propagate constness (is the view const, the elements are const)
   - Avoid using references that break the effect of declaring elements const
 
@@ -299,6 +299,11 @@ which becamne part of the C++ standard in C++20.
 This library is build on top of it.
 So many many thanks for all who worked on this libary.
 
+The code of this library is partially a modification of code of the GNU ISO C++ Library.
+That code was of tremendous help to make this implementation and I want to thank
+all the developers of this library.
+
+
 ## Feedback
 
 I am happy about any constructive feedback.
@@ -306,8 +311,8 @@ Please use the feedback address of my C++20 book: http://cppstd20.com/feedback
 
 ## License
 
-The code is licensed under a Creative Commons Attribution 4.0 International License.
-
-http://creativecommons.org/licenses/by/4.0/
-
+Because this code uses modified versions of
+the GNU ISO C++ Library,
+the licence is the follow the GNU GPL.
+See the COPYRIGHT file.
 
