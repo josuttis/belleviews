@@ -620,8 +620,8 @@ Program, unless a warranty or assumption of liability accompanies a
 copy of the Program in return for a fee.
 
 */
-#ifndef BELLEDROP_HPP
-#define BELLEDROP_HPP
+#ifndef BELLEEAGERBEGIN_HPP
+#define BELLEEAGERBEGIN_HPP
 
 #include "makeconstiterator.hpp"
 
@@ -630,7 +630,7 @@ copy of the Program in return for a fee.
 #include <cassert>
 
 //*************************************************************
-// class belleviews::drop_view
+// class belleviews::eager_begin_view
 // 
 // A C++ view
 // with the following benefits compared to C++ standard views
@@ -642,115 +642,198 @@ copy of the Program in return for a fee.
 //*************************************************************
 namespace belleviews {
 
+template<typename T>
+struct IsVectorTrait {
+  constexpr static bool value = false; 
+};
+
+template<typename T>
+struct IsVectorTrait<std::vector<T>>  {
+  constexpr static bool value = true; 
+};
+
+template<typename T>
+concept IsVector = IsVectorTrait<std::remove_cvref_t<T>>::value;
+
+template<typename T>
+concept HasBase = requires(T c){c.base();};
+
+template<std::ranges::range T, bool = requires(T c){c.base();}>
+//template<std::ranges::range T, bool = HasBase<T>>
+struct BaseType {
+  using type = BaseType<decltype(std::declval<T>().base())>::type;
+};
+
+template<typename T>
+struct BaseType<T, false>  {
+  using type = T;   // default false case
+};
+
+
 template<std::ranges::view V>
-class drop_view : public std::ranges::view_interface<drop_view<V>>
+class eager_begin_view : public std::ranges::view_interface<eager_begin_view<V>>
 {
  private:
-  V base_ = V();
-  std::ranges::range_difference_t<V> count_ = 0;
+   static auto&& innerBase(auto&& v) {
+     if constexpr (requires{v.base();}) {
+       return innerBase(v.base());
+     }
+     else {
+       return v;
+     }
+   }
+ private:
+   V base_ = V();
+   std::ranges::iterator_t<V> beg_ = std::ranges::begin(base_);
+   // to detect broken vector begin:
+   //using InnerBaseType = std::remove_cvref_t<BaseType<V>::type>;
+   //using InnerBaseType = std::remove_cvref_t<decltype(innerBase(std::declval<V>()))>;
+   using InnerBaseType = std::remove_cvref_t<decltype(innerBase(std::declval<V>()))>;
+   InnerBaseType* innerBasePtr_ = nullptr;
+   void* innerData_ = nullptr;
+   //std::ranges::iterator_t<InnerBaseType> innerBaseBeg_{};
  public:
-  drop_view() requires std::default_initializable<V> = default;
+  eager_begin_view() requires std::default_initializable<V> = default;
 
-  constexpr drop_view(V v, std::ranges::range_difference_t<V> c)
-   : base_(std::move(v)), count_{c} {
-      assert(c >= 0);
+  constexpr eager_begin_view(V v)
+   : base_(std::move(v)), beg_{std::ranges::begin(base_)} {
+    if constexpr (IsVector<InnerBaseType>) {
+      innerBasePtr_ = &innerBase(v);
+      innerData_ = innerBasePtr_->data();
+    }
   }
 
   constexpr V base() const& requires std::copy_constructible<V> { return base_; }
   constexpr V base() && { return std::move(base_); }
 
   constexpr auto begin()
-  { //requires (!(_intern::simple_view<V> && std::ranges::random_access_range<const V> && std::ranges::sized_range<const V>)) {
-    return std::ranges::next(std::ranges::begin(base_), count_,
-                             std::ranges::end(base_));
+  {
+    if constexpr (IsVector<InnerBaseType>) {
+      auto newInnerBasePtr = &innerBase(base_);
+      //std::cout << "\ntypeid:   " << typeid(innerBase(base_)).name() << '\n';
+      //std::cout << "\ntypeid:   " << typeid(typename BaseType<V>::type).name() << '\n';
+      //std::cout << "\nisvector: " << IsVector<typename BaseType<V>::type> << '\n';
+      if (newInnerBasePtr == innerBasePtr_ && newInnerBasePtr->data() != innerData_) {
+        std::cout << "\n*** BELLEVIEWS RUNTIME ERROR: " << "eager begin() no longer valid: ";
+        std::cout << "     " << (void*)(innerBasePtr_->data()) << " <=> " << innerData_ << '\n';
+        // as a workaround: copy to itself:
+        auto baseCopy = base_;
+        base_ = std::move(baseCopy);
+        beg_ = std::ranges::begin(base_);
+        innerBasePtr_ = &innerBase(base_);
+        innerData_ = innerBasePtr_->data();
+        return std::ranges::begin(*newInnerBasePtr);
+      }
+    }
+    return beg_;
   }
   constexpr auto begin() const
-  { //requires std::ranges::random_access_range<const V> && std::ranges::sized_range<const V> {
-    return make_const_iterator(std::ranges::next(std::ranges::begin(base_), count_,
-                                                 std::ranges::end(base_)));
+  {
+    return make_const_iterator(beg_);
   }
   constexpr auto end()
-  //requires (!_intern::simple_view<V>) {
   {
     return std::ranges::end(base_);
   }
   constexpr auto end() const
-  //requires std::ranges::range<const V> {
   {
     return make_const_sentinel(std::ranges::end(base_));
   }
-
-  constexpr auto size()
-  requires std::ranges::sized_range<V> {
-    const auto s = std::ranges::size(base_);
-    const auto c = static_cast<decltype(s)>(count_);
-    return s < c ? 0 : s - c;
-  }
-  constexpr auto size() const
-  requires std::ranges::sized_range<const V> {
-    const auto s = std::ranges::size(base_);
-    const auto c = static_cast<decltype(s)>(count_);
-    return s < c ? 0 : s - c;
-  }
 };
 
+/*
+template<std::ranges::view V>
+requires std::ranges::random_access_range<V>
+class eager_begin_view<V> : public std::ranges::view_interface<eager_begin_view<V>>
+{
+ private:
+   V base_ = V();
+   std::ranges::range_difference_t<V> offset_ = 0;
+ public:
+  eager_begin_view() requires std::default_initializable<V> = default;
+
+  constexpr eager_begin_view(V v)
+   : base_(std::move(v)) {
+       auto baseBeg = std::ranges::begin(base_.base());
+       offset_ = std::ranges::begin(base_) - baseBeg;
+  }
+
+  constexpr V base() const& requires std::copy_constructible<V> { return base_; }
+  constexpr V base() && { return std::move(base_); }
+
+  constexpr auto begin()
+  {
+    return std::ranges::begin(base_.base()) + offset_;
+  }
+  constexpr auto begin() const
+  {
+    return make_const_iterator(std::ranges::begin(base_.base()) + offset_);
+  }
+  constexpr auto end()
+  {
+    return std::ranges::end(base_);
+  }
+  constexpr auto end() const
+  {
+    return make_const_sentinel(std::ranges::end(base_));
+  }
+};
+*/
+
 template<typename R>
-drop_view(R&&, std::ranges::range_difference_t<R>) -> drop_view<std::views::all_t<R>>;
+eager_begin_view(R&&) -> eager_begin_view<std::views::all_t<R>>;
 
 } // namespace belleviews
 
-// borrowed if underlying range is borrowed (as with std drop_view):
+// always borrowed range
 template<typename Rg>
-inline constexpr bool std::ranges::enable_borrowed_range<belleviews::drop_view<Rg>> = std::ranges::enable_borrowed_range<Rg>;
+inline constexpr bool std::ranges::enable_borrowed_range<belleviews::eager_begin_view<Rg>> = true;
 
 
 //*************************************************************
-// belleviews::drop()
-// bel::views::drop()
+// belleviews::eager_begin()
+// bel::views::eager_begin()
 // 
-// A C++ drop_view adaptor for the belleviews::drop_view
+// A C++ eager_begin_view adaptor for the belleviews::eager_begin_view
 //*************************************************************
 namespace belleviews {
 
 namespace _intern {
-  template<typename Rg, typename DiffT>
-  concept can_drop_view = requires { drop_view(std::declval<Rg>(), std::declval<DiffT>()); };
+  template<typename Rg>
+  concept can_eager_begin_view = requires { eager_begin_view(std::declval<Rg>()); };
 }
 
-struct _Drop {
-   // for:  bel::views::drop(rg, 2)
-   template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
-   requires _intern::can_drop_view<Rg, DiffT>
+struct _EagerBegin {
+   // for:  bel::views::eager_begin(rg)
+   template<std::ranges::viewable_range Rg>
+   requires _intern::can_eager_begin_view<Rg>
    constexpr auto
-   operator() [[nodiscard]] (Rg&& rg, DiffT diff) const {
-     return drop_view{std::forward<Rg>(rg), diff};
+   operator() [[nodiscard]] (Rg&& rg) const {
+     return eager_begin_view{std::forward<Rg>(rg)};
    }
 
-   // for:  rg | bel::views::drop(2)
-   template<typename T>
-   struct PartialDrop {
-     T diff;
+   // for:  rg | bel::views::eager_begin()
+   struct PartialEagerBegin {
    };
 
-   template<typename DiffT>
    constexpr auto
-   operator() [[nodiscard]] (DiffT diff) const {
-     return PartialDrop<DiffT>{diff};
+   operator() [[nodiscard]] () const {
+     return PartialEagerBegin{};
    }
 
-   template<typename Rg, typename DiffT>
+   template<typename Rg>
    friend constexpr auto
-   operator| (Rg&& rg, PartialDrop<DiffT> pd) {
-     return drop_view{std::forward<Rg>(rg), pd.diff};
+   operator| (Rg&& rg, PartialEagerBegin) {
+     return eager_begin_view{std::forward<Rg>(rg)};
    }
 };
 
-inline constexpr _Drop drop;
+inline constexpr _EagerBegin eager_begin;
 
 } // namespace belleviews
 
 namespace bel::views {
-  inline constexpr belleviews::_Drop drop;
+  inline constexpr belleviews::_EagerBegin eager_begin;
 }
 
-#endif // BELLEDROP_HPP
+#endif // BELLEEAGERBEGIN_HPP
