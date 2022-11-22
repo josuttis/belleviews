@@ -47,29 +47,132 @@ public:
     using difference_type = std::iter_difference_t<Iterator>;
     using reference = const_ref_for<Iterator>;
 
-    basic_const_iterator() = default;
-    basic_const_iterator(Iterator it) : current_(std::move(it)) { }
-    template <std::convertible_to<Iterator> U>
-    basic_const_iterator(basic_const_iterator<U> c) : current_(std::move(c.base())) { }
-    basic_const_iterator(std::convertible_to<Iterator> auto&& c) : current_(FWD(c)) { }
+  // constructors:
+  basic_const_iterator() requires std::default_initializable<Iterator> = default;
 
-    auto operator++() -> basic_const_iterator& { ++current_; return *this; }
-    auto operator++(int) -> basic_const_iterator requires std::forward_iterator<Iterator> { auto cpy = *this; ++*this; return cpy; }        
-    void operator++(int) { ++*this; }
+  constexpr basic_const_iterator(Iterator current)
+   : current_{std::move(current)} {
+  }
 
-    auto operator--() -> basic_const_iterator& requires std::bidirectional_iterator<Iterator> { --current_; return *this; }
-    auto operator--(int) -> basic_const_iterator requires std::bidirectional_iterator<Iterator> { auto cpy = *this; --*this; return cpy; }        
+  template<std::convertible_to<Iterator> U>
+    constexpr basic_const_iterator(basic_const_iterator<U> current)
+   : current_{std::move(current.current_)} {
+  }
 
-    auto operator+(difference_type n) const -> basic_const_iterator requires std::random_access_iterator<Iterator> { return const_iterator(current_ + n); }
-    auto operator-(difference_type n) const -> basic_const_iterator requires std::random_access_iterator<Iterator> { return const_iterator(current_ - n); }
-    friend auto operator+(difference_type n, basic_const_iterator const& rhs) -> basic_const_iterator { return rhs + n; }
-    auto operator+=(difference_type n) -> basic_const_iterator& requires std::random_access_iterator<Iterator> { current_ += n; return *this; }
-    auto operator-=(difference_type n) -> basic_const_iterator& requires std::random_access_iterator<Iterator> { current_ -= n; return *this; }        
-    auto operator-(basic_const_iterator const& rhs) const -> difference_type requires std::random_access_iterator<Iterator> { return current_ - rhs.current_; }
-    auto operator[](difference_type n) const -> reference requires std::random_access_iterator<Iterator> { return current_[n]; }
+  template<belleviews::_intern::different_from<basic_const_iterator> T>
+    requires std::convertible_to<T, Iterator>
+    constexpr basic_const_iterator(T&& current)
+   : current_{std::forward<T>(current)} {
+  }
 
-    auto operator*() const -> reference { return *current_; }
-    auto operator->() const -> value_type const* requires std::contiguous_iterator<Iterator> { return std::to_address(current_); }
+    //basic_const_iterator() = default;
+    //basic_const_iterator(Iterator it) : current_(std::move(it)) { }
+    //template <std::convertible_to<Iterator> U>
+    //basic_const_iterator(basic_const_iterator<U> c) : current_(std::move(c.base())) { }
+    //basic_const_iterator(std::convertible_to<Iterator> auto&& c) : current_(FWD(c)) { }
+
+  // ++ and -- :
+  constexpr basic_const_iterator& operator++() {
+    ++current_;
+    return *this;
+  }
+  constexpr void operator++(int) {
+    return ++current_;
+  }
+  constexpr basic_const_iterator operator++(int) requires std::forward_iterator<Iterator> {
+    auto tmp = *this;
+    ++*this;
+    return tmp;
+  }
+
+  constexpr basic_const_iterator& operator--() requires std::bidirectional_iterator<Iterator> {
+    --current_;
+    return *this;
+  }
+  constexpr basic_const_iterator operator--(int) requires std::bidirectional_iterator<Iterator> {
+    auto tmp = *this;
+    --*this;
+    return tmp;
+  }
+
+    //auto operator++() -> basic_const_iterator& { ++current_; return *this; }
+    //auto operator++(int) -> basic_const_iterator requires std::forward_iterator<Iterator> { auto cpy = *this; ++*this; return cpy; }        
+    //void operator++(int) { ++*this; }
+
+    //auto operator--() -> basic_const_iterator& requires std::bidirectional_iterator<Iterator> { --current_; return *this; }
+    //auto operator--(int) -> basic_const_iterator requires std::bidirectional_iterator<Iterator> { auto cpy = *this; --*this; return cpy; }        
+
+  // + :
+  friend constexpr basic_const_iterator operator+(const basic_const_iterator& i, difference_type n)
+  requires std::random_access_iterator<Iterator> {
+    return basic_const_iterator(i.current_ + n);
+  }
+    //auto operator+(difference_type n) const -> basic_const_iterator requires std::random_access_iterator<Iterator> { return const_iterator(current_ + n); }
+    //friend auto operator+(difference_type n, basic_const_iterator const& rhs) -> basic_const_iterator { return rhs + n; }
+  
+  friend constexpr basic_const_iterator operator+(difference_type n, const basic_const_iterator& i)
+  requires std::random_access_iterator<Iterator> {
+    return basic_const_iterator(i.current_ + n);
+  }
+  
+  // - :
+  friend constexpr basic_const_iterator operator-(const basic_const_iterator& i, difference_type n)
+  requires std::random_access_iterator<Iterator> {
+    return basic_const_iterator(i.current_ - n);
+  }
+    //auto operator-(difference_type n) const -> basic_const_iterator requires std::random_access_iterator<Iterator> { return const_iterator(current_ - n); }
+  
+  // HERE IS A PROBLEM:
+  //template<std::sized_sentinel_for<Iterator> S>
+  //friend constexpr difference_type operator-(const basic_const_iterator& i, const S& y) {
+  //  return basic_const_iterator(i.current_ - y);
+  //}
+  
+  //template<std::sized_sentinel_for<Iterator> S>
+  //requires belleviews::_intern::different_from<S, basic_const_iterator>
+  //friend constexpr difference_type operator-(const S& x, const basic_const_iterator& y) {
+  //  return x - y.current_;
+  //}
+
+  constexpr basic_const_iterator& operator+=(difference_type n)
+    requires std::random_access_iterator<Iterator> {
+      current_ += n;
+      return *this;
+  }
+  constexpr basic_const_iterator& operator-=(difference_type n)
+    requires std::random_access_iterator<Iterator> {
+      current_ += n;
+      return *this;
+  }
+
+  constexpr reference operator[](difference_type n) const
+    requires std::random_access_iterator<Iterator> {
+    return static_cast<reference>(current_[n]);
+  }
+
+    //auto operator+=(difference_type n) -> basic_const_iterator& requires std::random_access_iterator<Iterator> { current_ += n; return *this; }
+    //auto operator-=(difference_type n) -> basic_const_iterator& requires std::random_access_iterator<Iterator> { current_ -= n; return *this; }        
+    //auto operator-(basic_const_iterator const& rhs) const -> difference_type requires std::random_access_iterator<Iterator> { return current_ - rhs.current_; }
+    //auto operator[](difference_type n) const -> reference requires std::random_access_iterator<Iterator> { return current_[n]; }
+
+  // * and -> :
+  constexpr reference operator*() const {
+    return static_cast<reference>(*current_);
+  }
+
+  constexpr const value_type* operator->() const
+    requires std::is_lvalue_reference_v<std::iter_reference_t<Iterator>> &&
+             std::same_as<std::remove_cvref_t<std::iter_reference_t<Iterator>>, value_type> {
+    if constexpr (std::contiguous_iterator<Iterator>) {
+      return to_address(current_);
+    }
+    else {
+      std::addressof(*current_);
+    }
+  }
+
+    //auto operator*() const -> reference { return *current_; }
+    //auto operator->() const -> value_type const* requires std::contiguous_iterator<Iterator> { return std::to_address(current_); }
 
     template <std::sentinel_for<Iterator> S>
     auto operator==(S const& s) const -> bool {
@@ -106,8 +209,12 @@ public:
         return s - rhs.current_;
     }
 
-    auto base() -> Iterator& { return current_; }
-    auto base() const -> Iterator const& { return current_; }
+  // base():
+  constexpr const Iterator& base() const& noexcept { return current_; }
+  constexpr Iterator base() && { return std::move(current_); }
+
+    //auto base() -> Iterator& { return current_; }
+    //auto base() const -> Iterator const& { return current_; }
 };
 
 
