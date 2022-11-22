@@ -120,7 +120,7 @@ namespace belleviews::_intern {
   using range_const_rvalue_reference_t = iter_const_rvalue_reference_t<std::ranges::iterator_t<R>>;
 
   template<std::ranges::range R>
-  using const_iterator_t = std::const_iterator<std::ranges::iterator_t<R>>;
+  using const_iterator_t = const_iterator<std::ranges::iterator_t<R>>;
 
   //template<class S>
   //using const_sentinel = see below ;
