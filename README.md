@@ -308,7 +308,9 @@ all the developers of this library.
 ## Feedback
 
 I am happy about any constructive feedback.
-Please use the feedback address of my C++20 book: http://cppstd20.com/feedback
+Please use the following email address for feedback (if you click on it to reply, you have to
+(replace &quot;_AT_&quot; by &quot;@&quot;):
+<a href="mailto:belleviews_AT_josuttis.com%3E?Subject=Feedback%20%belleviews"><b>belleviews@josuttis.com</b></a>
 
 ## License
 
@@ -318,5 +320,8 @@ the code is licensed according to the GNU General Public License, version 3.
 You can redistribute and/or modify the code under the terms of the **GNU General Public License**
 as published by the Free Software Foundation; either version 3,
 or (at your option) any later version.
-See the file [COPYING3](COPYING3).
+See the file [COPYRIGHT](COPYRIGHT).
+See the end of file [COPYING3](**COPYING3**) additional details about how to
+apply these terms to your new programs.
+
 
