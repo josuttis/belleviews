@@ -250,7 +250,8 @@ For more examples, see in sources all the test code.
 **Still:**
 
 - Views might be borrowed or might be not
-  - We could make views borrowed if they don't own a range, but the question is whether it is worth it
+  - We could make more/all views borrowed if they don't own a range:
+    But if they own a range they have to be borrowed. So we keep the standard policy here as it is.
 
   
 ## Status
