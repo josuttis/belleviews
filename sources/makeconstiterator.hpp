@@ -70,7 +70,7 @@ private:
 
 public:
   using iterator_concept = decltype(_S_iter_concept());
-  //using iterator_category = see below ; // not always present (defiined via base type)
+  //using iterator_category = see below ; // not always present (defined via base type)
   using value_type = std::iter_value_t<Iterator>;
   using difference_type = std::iter_difference_t<Iterator>;
 
