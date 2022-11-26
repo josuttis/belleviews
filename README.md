@@ -103,17 +103,17 @@ However, in some cases you might have or want to do more:
 Belle views can always iterate over elements even if the views are `const`:
 
     template<typename T>
-    void print(const T& coll);           // print elements of a collection
+    void print(const T& coll);           // print elements of a const collection
     
     std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
     std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
 
     print(vec | std::views::drop(2));    // OK
-    print(lst | std::views::drop(2));    // ERROR with standard views
     print(vec | bel::views::drop(2));    // OK
+    print(lst | std::views::drop(2));    // ERROR with standard views
     print(lst | bel::views::drop(2));    // OK with belle views
 
-Belle views propagate `const`:
+Belle views always propagate `const` (not only for views on temporary objects):
 
     std::vector vec{1, 2, 3, 4, 5, 6, 7, 8};
 
@@ -126,21 +126,22 @@ Belle views propagate `const`:
     auto vBel2 = vBel;    // NOTE: removes constness
     vBel2[0] += 42;       // OK
 
-Belle views do not cache so that they operate as expected way later than defined:
+Belle views do not cache so that they operate as expected when not used ad hoc:
 
     std::vector vec{1, 2, 3, 4, 5};
-    auto biggerThan2 = [](auto v) { return v > 2; };
+    auto greaterThan2 = [](auto v) { return v > 2; };
 
-    auto big2Std = vec | std::views::filter(biggerThan2);
-    printUniversal(big2Std);           // OK:  3 4 5
-    auto big2Bel = vec | bel::views::filter(biggerThan2);
-    print(big2Bel);                    // OK:  3 4 5
+    auto gt2Std = vec | std::views::filter(greaterThan2);  // standard view
+    printUniversal(gt2Std);                                // OK:  3 4 5
+
+    auto gt2Bel = vec | bel::views::filter(greaterThan2);  // belle view
+    print(gt2Bel);                                         // OK:  3 4 5
     
     vec.insert(vec.begin(), {9, 0, -1});
-    print(vec);                        // vec now: 9 0 -1 1 2 3 4 5
+    print(vec);                                            // vec now: 9 0 -1 1 2 3 4 5
 
-    printUniversal(big2Std);           // OOPS:  -1 3 4 5
-    print(big2Bel);                    // OK:  9 3 4 5
+    printUniversal(gt2Std);                                // OOPS:  -1 3 4 5  (due to earlier print call)
+    print(gt2Bel);                                         // OK:  9 3 4 5
 
 Note that without the first call of `printUniversal()` the second call would be correct.
 Thus, for standard views, even a pure reading iteration might change or even invalidate later behavior.
