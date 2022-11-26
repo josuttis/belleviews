@@ -297,13 +297,14 @@ see
 This library could not have been implemented without the tremendous work of
 the designers and the implementors of the ranges library,
 which became part of the C++ standard in C++20.
-This library is built on top of it.
-So many many thanks for all who worked on this libary.
+Therefore, many many thanks for all who worked on the ranges libary and its standardization.
 
-The code of this library is partially a modification of code of the GNU ISO C++ Library.
-That code was of tremendous help to make this implementation and I want to thank
-all the developers of this library.
+The code of this library partially adopts code from the GNU ISO C++ Library.
+That code was of tremendous help to make this implementation possible
+and I want to thank all the developers of this library.
 
+Finally, let me thank all additional contibutors who made pull requests, did reviews, and
+gave additional feedback.
 
 ## Feedback
 
@@ -317,11 +318,17 @@ Beside pull requests, you can use the following email address for feedback (if y
 Because this code uses modified versions of the GNU ISO C++ Library,
 the code is licensed according to the GNU General Public License, version 3.
 
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
 You can redistribute and/or modify the code under the terms of the **GNU General Public License**
 as published by the Free Software Foundation; either version 3,
 or (at your option) any later version.
 See the file [COPYRIGHT](COPYRIGHT).
 See the end of the file **[COPYING3](COPYING3)** for additional details about how to
 apply these terms to your new programs.
+
+
 
 
