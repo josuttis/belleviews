@@ -24,12 +24,15 @@ void printUniversal(const std::string& msg, auto&& coll)
   }
   std::cout << '\n';
 }
+void printUniversal(auto&& coll) {
+  printUniversal("", std::forward<decltype(coll)>(coll));
+}
 
-auto printAndAccum(auto&& coll)
+auto concurrentPrintAndAccum(auto&& coll)
 {
-  std::jthread t1{[&] {
-                    printUniversal("", coll);
-                  }};
+  // one thread prints:
+  std::jthread t1{[&] { printUniversal("", coll); }};
+  // this thead compute the sum (parallel call of begin()):
   std::ranges::range_value_t<decltype(coll)> sum{};
   sum = std::reduce(std::execution::par,
                     coll.begin(), coll.end(),
@@ -43,12 +46,12 @@ template<typename T, typename T2>
 concept SupportsAssign = requires (T x, T2 y) { x = y; };
 
 
-int main()
+void testBasics()
 {
+  //**** test functionality:
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};
   print(coll);
 
-  //**** test functionality:
   belleviews::sub_view v1{++coll.begin(), --coll.end()};
   print(v1);
 
@@ -60,7 +63,11 @@ int main()
 
   auto v4 = bel::views::sub(++coll.begin(), --coll.end());
   print(v4);
+}
 
+
+void testConstPropagation()
+{
   // **** test const propagation:
   {
     std::cout << "test const propagation:\n";
@@ -78,21 +85,13 @@ int main()
       //elem = elem * elem;  // ERROR
     }
   }
+}
 
-  /*
-  //print(coll | std::views::drop(2));  // ERROR withg standard views
-  auto v3 = coll | bel::views::drop(2);
-  print(v3);                            // OK with belle views
 
-  auto v4 = coll | bel::views::drop(2) | std::views::take(4);
-  print(v4);
-
-  auto v5 = coll | std::views::take(6) | bel::views::drop(2);
-  print(v5);
-
-  //auto v6 = coll | std::views::take(6) | bel::views::drop(2) | std::views::take(2);
-  //print(v6);
-  */
+int main()
+{
+  testBasics();
+  testConstPropagation();
 
 }
 
