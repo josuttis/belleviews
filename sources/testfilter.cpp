@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-//#include "string.hpp"   // special string to find use of freed memory
 #include <array>
 #include <vector>
 #include <list>
