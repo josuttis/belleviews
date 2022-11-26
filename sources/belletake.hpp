@@ -235,17 +235,17 @@ class take_view : public std::ranges::view_interface<take_view<V>>
     if constexpr (std::ranges::sized_range<const V>) {
       if constexpr (std::ranges::random_access_range<const V>) {
         //return std::ranges::begin(base_);
-        return make_const_iterator(std::ranges::begin(base_));
+        return std::make_const_iterator(std::ranges::begin(base_));
       }
       else {
         auto sz = std::ranges::range_difference_t<const V>(size());
         //return std::counted_iterator(std::ranges::begin(base_), sz);
-        return make_const_iterator(std::counted_iterator(std::ranges::begin(base_), sz));
+        return std::make_const_iterator(std::counted_iterator(std::ranges::begin(base_), sz));
       }
     } 
     else {
       //return std::counted_iterator(std::ranges::begin(base_), count_);
-      return make_const_iterator(std::counted_iterator(std::ranges::begin(base_), count_));
+      return std::make_const_iterator(std::counted_iterator(std::ranges::begin(base_), count_));
     }
   }
 
@@ -255,7 +255,7 @@ class take_view : public std::ranges::view_interface<take_view<V>>
     if constexpr (std::ranges::sized_range<V>) {
       if constexpr (std::ranges::random_access_range<V>) {
         //return std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size());
-        return make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size()));
+        return std::make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<V>(size()));
       }
       else {
         return std::default_sentinel;
@@ -269,7 +269,7 @@ class take_view : public std::ranges::view_interface<take_view<V>>
     if constexpr (std::ranges::sized_range<const V>) {
       if constexpr (std::ranges::random_access_range<const V>) {
         //return std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size());
-        return make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size()));
+        return std::make_const_sentinel(std::ranges::begin(base_) + std::ranges::range_difference_t<const V>(size()));
       }
       else {
         return std::default_sentinel;

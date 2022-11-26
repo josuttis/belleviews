@@ -223,7 +223,7 @@ namespace belleviews::_intern {
 
 #include "makeconstiterator.hpp"
 
-//namespace std {
+namespace std {
 template<std::input_iterator I>
 constexpr auto make_const_iterator(I it)
 {
@@ -235,7 +235,7 @@ constexpr auto make_const_sentinel(S s)
 {
   return belleviews::_intern::make_const_sentinel(s);
 }
-//}// namespace std
+}// namespace std
 
 #endif // __cpp_lib_ranges_as_const
 
