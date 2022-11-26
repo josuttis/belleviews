@@ -48,17 +48,17 @@ In fact, **C++ standard views have the following problems:**
 - Type **const_iterator** is **not available**.
 
 - A standard view is not always a pure subset restricting or dealing with the elements of a range,
-   but not providing opeionts the range would not provide.
+   but not providing options the range would not provide.
    They might remove constraints and provide options, the range itself does not have. 
 
-This make the use of views error-prone, confusing and programmers might easily create fatal runtime errors
+This makes the use of views error-prone, confusing and programmers might easily create fatal runtime errors
 without being aware of it.
 
 There are reasons for this behavior:
 - The key problem is the decision that views might cache begin() so that
   iterating over elements is not stateless.
   The funny consequence is that due to the several consequences you should use standard views ad hoc,
-  so that the optimization (which only helps for a second iteration) often doesn't pay of.
+  so that the optimization (which only helps for a second iteration) often doesn't pay off.
 - The designers of the views considered views as pointers instead of
   references to collections. However view are no pointers (they do not provide operator * or ->).
   They only internally use pointers.
