@@ -216,13 +216,12 @@ namespace belleviews::_intern {
 
 
 
-#include "makeconstiterator.hpp"
-
-
 //**********************************************************************
 // make_const_iterator() if not available yet
 //**********************************************************************
 #ifndef __cpp_lib_ranges_as_const
+
+#include "makeconstiterator.hpp"
 
 //namespace std {
 template<std::input_iterator I>
