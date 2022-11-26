@@ -295,8 +295,8 @@ see
 
 This library could not have been implemented without the tremendous work of
 the designers and the implementors of the ranges library,
-which becamne part of the C++ standard in C++20.
-This library is build on top of it.
+which became part of the C++ standard in C++20.
+This library is built on top of it.
 So many many thanks for all who worked on this libary.
 
 The code of this library is partially a modification of code of the GNU ISO C++ Library.
@@ -311,8 +311,11 @@ Please use the feedback address of my C++20 book: http://cppstd20.com/feedback
 
 ## License
 
-Because this code uses modified versions of
-the GNU ISO C++ Library,
-the licence is the follow the GNU GPL.
-See the COPYRIGHT file.
+Because this code uses modified versions of the GNU ISO C++ Library,
+the code is licensed according to the GNU General Public License, version 3.
+
+You can redistribute and/or modify the code under the terms of the **GNU General Public License**
+as published by the Free Software Foundation; either version 3,
+or (at your option) any later version.
+See the file <xref href="COPYING3">COPYING3</xref>.
 
