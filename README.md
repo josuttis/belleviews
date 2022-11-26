@@ -310,7 +310,7 @@ all the developers of this library.
 I am happy about any constructive feedback.
 Beside pull requests, you can use the following email address for feedback (if you click on it to reply, you have to
 (replace &quot;\_AT\_&quot; by &quot;@&quot;):
-<a href="mailto:belleviews_AT_josuttis.com%3E?Subject=Feedback%20%belleviews"><b>belleviews@josuttis.com</b></a>
+<a href="mailto:belleviews_AT_josuttis.com%3E?Subject=Feedback%20%belleviews"><b>belleviews_AT_josuttis.com</b></a>
 
 ## License
 
@@ -321,7 +321,7 @@ You can redistribute and/or modify the code under the terms of the **GNU General
 as published by the Free Software Foundation; either version 3,
 or (at your option) any later version.
 See the file [COPYRIGHT](COPYRIGHT).
-See the end of file [COPYING3](**COPYING3**) additional details about how to
+See the end of the file **[COPYING3](COPYING3)** for additional details about how to
 apply these terms to your new programs.
 
 
