@@ -93,7 +93,7 @@ So far, we have only a couple of header files, you have to include and use.
 
 In your code, all you have to do usually is to use the namespace `bel::views` instead of `std::views`.
 For example:
-- Use `<font color="red">bel</font>::views::drop(3)` instead of `std::views::drop(3)`
+- Use <font color="red">`bel`</font>`::views::drop(3)` instead of `std::views::drop(3)`
 
 However, in some cases you might have or want to do more:
 - Use `bel::views::sub(beg,end)` instead of `std::ranges::subrange{beg,end}`
