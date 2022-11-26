@@ -140,7 +140,7 @@ Belle views do not cache so that they operate as expected when not used ad hoc:
     vec.insert(vec.begin(), {9, 0, -1});
     print(vec);                                            // vec now: 9 0 -1 1 2 3 4 5
 
-    printUniversal(gt2Std);                                // OOPS:  -1 3 4 5  (due to earlier print call)
+    printUniversal(gt2Std);                                // OOPS:  -1 3 4 5  (due to earlier print call!)
     print(gt2Bel);                                         // OK:  9 3 4 5
 
 Note that without the first call of `printUniversal()` the second call would be correct.
