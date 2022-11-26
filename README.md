@@ -93,7 +93,7 @@ So far, we have only a couple of header files, you have to include and use.
 
 In your code, all you have to do usually is to use the namespace `bel::views` instead of `std::views`.
 For example:
-- Use <span style="color:red">`bel`</span>`::views::drop(3)` instead of `std::views::drop(3)`
+- Use `bel::views::drop(3)` instead of `std::views::drop(3)`
 
 However, in some cases you might have or want to do more:
 - Use `bel::views::sub(beg,end)` instead of `std::ranges::subrange{beg,end}`
@@ -109,9 +109,9 @@ Belle views can always iterate over elements even if the views are `const`:
     std::list lst{1, 2, 3, 4, 5, 6, 7, 8};
 
     print(vec | std::views::drop(2));    // OK
-    print(lst | std::views::drop(2));    // <font color="red">ERROR with standard views<font>
-    print(vec | <font color="red">bel</font>::views::drop(2));    // OK
-    print(lst | <font color="red">bel</font>::views::drop(2));    // <font color="green">OK with belle views</font>
+    print(lst | std::views::drop(2));    // ERROR with standard views
+    print(vec | bel::views::drop(2));    // OK
+    print(lst | bel::views::drop(2));    // OK with belle views
 
 Belle views propagate `const`:
 
