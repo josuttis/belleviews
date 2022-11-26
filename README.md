@@ -308,8 +308,8 @@ all the developers of this library.
 ## Feedback
 
 I am happy about any constructive feedback.
-Please use the following email address for feedback (if you click on it to reply, you have to
-(replace &quot;_AT_&quot; by &quot;@&quot;):
+Beside pull requests, you can use the following email address for feedback (if you click on it to reply, you have to
+(replace &quot;\_AT\_&quot; by &quot;@&quot;):
 <a href="mailto:belleviews_AT_josuttis.com%3E?Subject=Feedback%20%belleviews"><b>belleviews@josuttis.com</b></a>
 
 ## License
