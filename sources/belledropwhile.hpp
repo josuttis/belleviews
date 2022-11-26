@@ -28,8 +28,6 @@
 #ifndef BELLEDROPWHILE_HPP
 #define BELLEDROPWHILE_HPP
 
-#include "makeconstiterator.hpp"
-
 #include <concepts>
 #include <ranges>
 #include <cassert>
@@ -57,7 +55,7 @@ class drop_while_view : public std::ranges::view_interface<drop_while_view<V, Pr
 {
     private:
       V base_ = V();
-      [[no_unique_address]] _intern::box<Pred> pred_;
+      [[no_unique_address]] _intern::SemiregBox<Pred> pred_;
 
     public:
       drop_while_view() requires (std::default_initializable<V>
@@ -146,11 +144,14 @@ struct _DropWhile {
    }
 };
 
+// belleviews::drop_while() :
 inline constexpr _DropWhile drop_while;
 
 } // namespace belleviews
 
+
 namespace bel::views {
+  // bel::views::drop_while() :
   inline constexpr belleviews::_DropWhile drop_while;
 }
 

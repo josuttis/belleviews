@@ -28,8 +28,6 @@
 #ifndef BELLEEAGERBEGIN_HPP
 #define BELLEEAGERBEGIN_HPP
 
-#include "makeconstiterator.hpp"
-
 #include <concepts>
 #include <ranges>
 #include <cassert>
@@ -146,45 +144,6 @@ class eager_begin_view : public std::ranges::view_interface<eager_begin_view<V>>
   }
 };
 
-/*
-template<std::ranges::view V>
-requires std::ranges::random_access_range<V>
-class eager_begin_view<V> : public std::ranges::view_interface<eager_begin_view<V>>
-{
- private:
-   V base_ = V();
-   std::ranges::range_difference_t<V> offset_ = 0;
- public:
-  eager_begin_view() requires std::default_initializable<V> = default;
-
-  constexpr eager_begin_view(V v)
-   : base_(std::move(v)) {
-       auto baseBeg = std::ranges::begin(base_.base());
-       offset_ = std::ranges::begin(base_) - baseBeg;
-  }
-
-  constexpr V base() const& requires std::copy_constructible<V> { return base_; }
-  constexpr V base() && { return std::move(base_); }
-
-  constexpr auto begin()
-  {
-    return std::ranges::begin(base_.base()) + offset_;
-  }
-  constexpr auto begin() const
-  {
-    return std::make_const_iterator(std::ranges::begin(base_.base()) + offset_);
-  }
-  constexpr auto end()
-  {
-    return std::ranges::end(base_);
-  }
-  constexpr auto end() const
-  {
-    return std::make_const_sentinel(std::ranges::end(base_));
-  }
-};
-*/
-
 template<typename R>
 eager_begin_view(R&&) -> eager_begin_view<std::views::all_t<R>>;
 
@@ -233,11 +192,14 @@ struct _EagerBegin {
    }
 };
 
+// belleviews::eager_begin :
 inline constexpr _EagerBegin eager_begin;
 
 } // namespace belleviews
 
+
 namespace bel::views {
+  // bel::views::eager_begin :
   inline constexpr belleviews::_EagerBegin eager_begin;
 }
 

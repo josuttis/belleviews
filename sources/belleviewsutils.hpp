@@ -101,28 +101,28 @@ namespace belleviews::_intern {
   using range_const_rvalue_reference_t = iter_const_rvalue_reference_t<std::ranges::iterator_t<R>>;
 
 
-  // box type (semiregular box)
+  // semiregular-box type
   template<typename V>
   concept boxable = std::copy_constructible<V> && std::is_object_v<V>;
 
   template<boxable V>
-  struct box : std::optional<V>
+  struct SemiregBox : std::optional<V>
   {
     using std::optional<V>::optional;
 
-    constexpr box() noexcept(std::is_nothrow_default_constructible_v<V>) requires std::default_initializable<V>
+    constexpr SemiregBox() noexcept(std::is_nothrow_default_constructible_v<V>) requires std::default_initializable<V>
      : std::optional<V>{std::in_place} {
     }
 
-    box(const box&) = default;
-    box(box&&) = default;
+    SemiregBox(const SemiregBox&) = default;
+    SemiregBox(SemiregBox&&) = default;
 
     using std::optional<V>::operator=;
 
     // _GLIBCXX_RESOLVE_LIB_DEFECTS
     // 3477. Simplify constraints for semiregular-box
     // 3572. copyable-box should be fully constexpr
-    constexpr box& operator=(const box& rhs) noexcept(std::is_nothrow_copy_constructible_v<V>)
+    constexpr SemiregBox& operator=(const SemiregBox& rhs) noexcept(std::is_nothrow_copy_constructible_v<V>)
     requires (!std::copyable<V>) {
       if (this != std::addressof(rhs)) {
         if ((bool)rhs) {
@@ -135,7 +135,7 @@ namespace belleviews::_intern {
       return *this;
     }
 
-    constexpr box& operator=(box&& rhs) noexcept(std::is_nothrow_move_constructible_v<V>)
+    constexpr SemiregBox& operator=(SemiregBox&& rhs) noexcept(std::is_nothrow_move_constructible_v<V>)
     requires (!std::movable<V>) {
       if (this != std::addressof(rhs)) {
         if ((bool)rhs) {
@@ -148,7 +148,7 @@ namespace belleviews::_intern {
       return *this;
     }
   };
-  // TODO: optimize box as in gcc (__box there)
+  // TODO: optimize SemiregBox as in gcc (__box there)
 
   // convertible_to_non_slicing
   template<typename _From, typename _To>

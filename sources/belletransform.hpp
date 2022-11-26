@@ -28,8 +28,6 @@
 #ifndef BELLETRANSFORM_HPP
 #define BELLETRANSFORM_HPP
 
-#include "makeconstiterator.hpp"
-
 #include <concepts>
 #include <ranges>
 #include <cassert>
@@ -335,7 +333,7 @@ class transform_view : public std::ranges::view_interface<transform_view<V, F>>
         };
 
       V _M_base = V();
-      [[no_unique_address]] _intern::box<F> _M_fun;
+      [[no_unique_address]] _intern::SemiregBox<F> _M_fun;
 
  public:
   transform_view() requires (std::default_initializable<V> && std::default_initializable<F>)
@@ -395,6 +393,7 @@ transform_view(R&&, F) -> transform_view<std::views::all_t<R>, F>;
 //template<typename V, typename Func>
 //inline constexpr bool std::ranges::enable_borrowed_range<belleviews::transform_view<V, Func>> = std::ranges::enable_borrowed_range<V>;
 
+
 //*************************************************************
 // belleviews::transform()
 // bel::views::transform()
@@ -436,11 +435,13 @@ struct _Transform {
    }
 };
 
+// belleviews::transform() :
 inline constexpr _Transform transform;
 
 } // namespace belleviews
 
 namespace bel::views {
+  // bel::views::transform() :
   inline constexpr belleviews::_Transform transform;
 }
 

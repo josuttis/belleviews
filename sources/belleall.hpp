@@ -98,9 +98,9 @@ class ref_view : public std::ranges::view_interface<ref_view<Rg>>
 template<typename Rg>
 ref_view(Rg&) -> ref_view<Rg>;
 
-} // namespace belleviews
+}// namespace belleviews
 
-// always borrowed (as with std take_view):
+// always borrowed (as with std ref_view):
 template<typename Rg>
 inline constexpr bool std::ranges::enable_borrowed_range<belleviews::ref_view<Rg>> = true;
 
@@ -187,6 +187,7 @@ class owning_view : public std::ranges::view_interface<owning_view<Rg>>
 
 } // namespace belleviews
 
+// borrowed if the underlying range is borrowed:
 template<typename Rg>
 inline constexpr bool std::ranges::enable_borrowed_range<belleviews::owning_view<Rg>> = std::ranges::enable_borrowed_range<Rg>;
   
@@ -228,16 +229,22 @@ struct _All {
 };
 
 
+// belleviews::all() :
 inline constexpr _All all;
 
+// belleviews::all_t :
 template<std::ranges::viewable_range Rg>
   using all_t = decltype(all(std::declval<Rg>()));
 
 } // namespace belleviews
 
+
 namespace bel::views {
+
+  // bel::views::all() :
   inline constexpr belleviews::_All all;
 
+  // bel::views::all_t :
   template<std::ranges::viewable_range Rg>
     using all_t = decltype(all(std::declval<Rg>()));
 }

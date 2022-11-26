@@ -28,8 +28,6 @@
 #ifndef BELLEFILTER_HPP
 #define BELLEFILTER_HPP
 
-#include "makeconstiterator.hpp"
-
 #include <concepts>
 #include <ranges>
 #include <cassert>
@@ -52,27 +50,6 @@
 // - concept and category
 //*************************************************************
 namespace belleviews {
-
-
-  /*
-template<std::ranges::input_range V,
-         std::indirect_unary_predicate<std::ranges::iterator_t<V>> Pred>
-requires std::ranges::view<V> && std::is_object_v<Pred>
-class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
-{
- private:
-  V base_ = V();                 // exposition only
-  //semiregular-box<Pred> pred_;   // exposition only
-  // TODO: semiregular box:
-  [[no_unique_address]] _intern::box<Pred> pred_;
-  // 24.7.4.3, class filter_view::iterator
-  //above: class iterator;                // exposition only
-  // 24.7.4.4, class filter_view::sentinel
-  //above: class sentinel;                // exposition only
- public:
-
-}
-*/
 
 namespace _intern
 {
@@ -127,7 +104,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     const filter_view* filterViewPtr = nullptr;           // view we iterate over
     VIterT current_ = VIterT();                           // current position
     std::optional<V> base_ = {};                          // view my not be def.constructible
-    //[[no_unique_address]] _intern::box<Pred> pred_;     // TODO: better?
+    //[[no_unique_address]] _intern::SemiregBox<Pred> pred_;     // TODO: better?
     Pred pred_;
 
    public:
@@ -218,7 +195,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     const filter_view* filterViewPtr = nullptr;           // view we iterate over
     VIterT current_ = VIterT();                           // current position
     std::optional<V> base_ = {};                          // view my not be def.constructible
-    //[[no_unique_address]] _intern::box<Pred> pred_;     // TODO: better?
+    //[[no_unique_address]] _intern::SemiregBox<Pred> pred_;     // TODO: better?
     Pred pred_;
 
    public:
@@ -333,8 +310,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
 
  private:
   V base_ = V();
-  [[no_unique_address]] _intern::box<Pred> pred_;
-  //[[no_unique_address]] __detail::_CachedPosition<V> _M_cached_begin;
+  [[no_unique_address]] _intern::SemiregBox<Pred> pred_;
 
  public:
   filter_view() requires (std::default_initializable<V> && std::default_initializable<Pred>)
@@ -435,93 +411,15 @@ struct _Filter {
    }
 };
 
+// belleviews::filter() :
 inline constexpr _Filter filter;
 
 } // namespace belleviews
 
+
 namespace bel::views {
+  // bel::views::filter() :
   inline constexpr belleviews::_Filter filter;
 }
-
-
-/* STD:
-  namespace std::ranges {
-    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
-    requires view<V> && is_object_v<Pred>
-    class filter_view : public view_interface<filter_view<V, Pred>> {
-     private:
-      V base_ = V(); // exposition only
-      semiregular-box<Pred> pred_; // exposition only
-      // 24.7.4.3, class filter_view::iterator
-      class iterator ; // exposition only
-      // 24.7.4.4, class filter_view::sentinel
-      class sentinel ; // exposition only
-     public:
-      filter_view() = default;
-      constexpr filter_view(V base, Pred pred);
-      constexpr V base() const& requires copy_constructible<V> { return base_; }
-      constexpr V base() && { return std::move(base_); }
-      constexpr const Pred& pred() const;
-      constexpr iterator begin();
-      constexpr auto end() {
-        if constexpr (common_range<V>)
-          return iterator {*this, ranges::end(base_)};
-        else
-          return sentinel {*this};
-      }
-    };
-    template<class R, class Pred>
-    filter_view(R&&, Pred) -> filter_view<views::all_t<R>, Pred>;
-  }
-
-  namespace std::ranges {
-    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
-    requires view<V> && is_object_v<Pred>
-    class filter_view<V, Pred>::iterator {
-     private:
-      iterator_t<V> current_ = iterator_t<V>(); // exposition only
-      filter_view* parent_ = nullptr; // exposition only
-     public:
-      using iterator_concept = see below ;
-      using iterator_category = see below ;
-      using value_type = range_value_t<V>;
-      using difference_type = range_difference_t<V>;
-      iterator () = default;
-      constexpr iterator (filter_view& parent, iterator_t<V> current);
-      constexpr iterator_t<V> base() const &
-      requires copyable<iterator_t<V>>;
-      constexpr iterator_t<V> base() &&;
-      constexpr range_reference_t<V> operator*() const;
-      constexpr iterator_t<V> operator->() const
-      requires has-arrow <iterator_t<V>> && copyable<iterator_t<V>>;
-      constexpr iterator & operator++();
-      constexpr void operator++(int);
-      constexpr iterator operator++(int) requires forward_range<V>;
-      constexpr iterator & operator--() requires bidirectional_range<V>;
-      constexpr iterator operator--(int) requires bidirectional_range<V>;
-      friend constexpr bool operator==(const iterator & x, const iterator & y)
-      requires equality_comparable<iterator_t<V>>;
-      friend constexpr range_rvalue_reference_t<V> iter_move(const iterator & i)
-      noexcept(noexcept(ranges::iter_move(i.current_)));
-      friend constexpr void iter_swap(const iterator & x, const iterator & y)
-      noexcept(noexcept(ranges::iter_swap(x.current_, y.current_)))
-      requires indirectly_swappable<iterator_t<V>>;
-    };
-  }
-
-  namespace std::ranges {
-    template<input_range V, indirect_unary_predicate<iterator_t<V>> Pred>
-    requires view<V> && is_object_v<Pred>
-    class filter_view<V, Pred>::sentinel {
-     private:
-      sentinel_t<V> end_ = sentinel_t<V>(); // exposition only
-     public:
-      sentinel () = default;
-      constexpr explicit sentinel (filter_view& parent);
-      constexpr sentinel_t<V> base() const;
-      friend constexpr bool operator==(const iterator & x, const sentinel & y);
-    };
-  }
-*/
 
 #endif // BELLEFILTER_HPP

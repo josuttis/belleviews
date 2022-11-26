@@ -16,7 +16,7 @@ Views are simple and great to use and the standard ranges library and its implem
 are a tremendous piece of work.
 
 However, for the standard views, some design decisions were made
-that are confusing and error-prone and cause sever problems
+that are confusing and error-prone and cause severe problems
 because these decisions break a couple of basic idioms that collections
 (such as standard containers) usually provide.
 
@@ -60,12 +60,12 @@ There are reasons for this behavior:
   The funny consequence is that due to the several consequences you should use standard views ad hoc,
   so that the optimization (which only helps for a second iteration) often doesn't pay off.
 - The designers of the views considered views as pointers instead of
-  references to collections. However view are no pointers (they do not provide operator * or ->).
+  references to collections. However, views are no pointers (they do not provide operator * or ->).
   They only internally use pointers.
   The result is a huge confusion of basic rules like const propagation,
   which usually is expected to apply to collection types.
   (Don't get me wrong; you could and can always implement collection types that
-   do not propagate constness; however, not everythign you can do as an expert is usefull for the mass.)
+   do not propagate constness; however, not everything you can do as an expert is useful for the mass.)
 
 However, for the mass, these are too many compromises for not enough value.
 For the mass, **we can do better**.
@@ -73,17 +73,19 @@ For the mass, **we can do better**.
 Unfortunately, it is too late to fix the C++ standard views anymore.
 For this reason, as an alternative for the standard views, this library is implemented.
 
-The belleviews library provides views that are simple to use and reduce the number of suprises causing compiletime errpors and runtime errors.
+The belleviews library provides views that are simple to use and reduce the number of surprises
+causing compile-time errors and runtime errors.
 The key benefit is that with these views,
 programs are way more predictable in behavior and meet the expectations of ordinary programmers.
 This especially helps in generic code that may be used for both containers and views.
 
-In some cases the price may be a potentially worse performance.
-However, the library will provide workarounds (that help locally istead of comprimising basic collection idioms).
+In some cases, the price may be a potentially worse performance.
+However, the library will provide workarounds
+(that help locally instead of compromising basic idioms of C++ and collections).
 
 This library does not replace the ranges library.
 It only is an alternative for the views in the standard library.
-Usually, it should even be possible to combione both.
+Usually, it should even be possible to combine both.
 
 ## How to use Belle Views
 
@@ -212,7 +214,7 @@ For more examples, see in sources all the test code.
 
 - Usability (simplicity, consistency, and a lot of use cases that standard views do (surprisingly) not support should just work)
 - Safety (a couple of non-intuitive cases for undefined behavior should no longer occur)
-- Performance (the library should stll have good performance)
+- Performance (the library should still have good performance)
 - Predictability (common use cases should work as expected)
 
 **Principles:**
@@ -245,13 +247,14 @@ For more examples, see in sources all the test code.
 
 **Open:**
 
-- Shall we stil support implicit conversion to a ref_view?
+- Shall we still support implicit conversion to a ref_view?
 
 **Still:**
 
 - Views might be borrowed or might be not
   - We could make more/all views borrowed if they don't own a range:
-    But if they own a range they have to be borrowed. So we keep the standard policy here as it is.
+    But if they own a range they have to be borrowed. 
+    Therefore, we keep the standard policy here as it is.
 
   
 ## Status
@@ -274,7 +277,7 @@ OPEN ISSUES (probably a lot but let's start with some):
 OPEN TOPICS:
 1. Support of counted, common, take_while
 1. Support of elements, keys, values
-   - with fix that elements always works on tuple-like APIs
+   - with a fix so that elements always works on tuple-like APIs
 1. Support of reverse
 1. Support of `zip_view` (fix the new C++23 const nightmare there)
 
@@ -297,13 +300,13 @@ see
 This library could not have been implemented without the tremendous work of
 the designers and the implementors of the ranges library,
 which became part of the C++ standard in C++20.
-Therefore, many many thanks for all who worked on the ranges libary and its standardization.
+Therefore, many many thanks for all who worked on the ranges library and its standardization.
 
 The code of this library partially adopts code from the GNU ISO C++ Library.
 That code was of tremendous help to make this implementation possible
 and I want to thank all the developers of this library.
 
-Finally, let me thank all additional contibutors who made pull requests, did reviews, and
+Finally, let me thank all additional contributors who made pull requests, did reviews, and
 gave additional feedback.
 
 ## Feedback

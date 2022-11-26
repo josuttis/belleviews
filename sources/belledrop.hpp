@@ -28,8 +28,6 @@
 #ifndef BELLEDROP_HPP
 #define BELLEDROP_HPP
 
-#include "makeconstiterator.hpp"
-
 #include <concepts>
 #include <ranges>
 #include <cassert>
@@ -150,11 +148,14 @@ struct _Drop {
    }
 };
 
+// belleviews::drop() :
 inline constexpr _Drop drop;
 
-} // namespace belleviews
+}// namespace belleviews
+
 
 namespace bel::views {
+  // bel::views::drop() :
   inline constexpr belleviews::_Drop drop;
 }
 

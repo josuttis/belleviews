@@ -300,13 +300,17 @@ struct _Sub {
    }
 };
 
+// belleviews::sub() :
 inline constexpr _Sub sub;
 
 } // namespace belleviews
 
+
 namespace bel::views {
+  // bel::views::sub() :
   inline constexpr belleviews::_Sub sub;
 }
+
 
 // allows to use bel::subrange instead of belleviews::sub_view
 namespace bel {
@@ -315,6 +319,7 @@ namespace bel {
                                               ? belleviews::subrange_kind::sized
                                               : belleviews::subrange_kind::unsized>
   requires (_Kind == belleviews::subrange_kind::sized || !std::sized_sentinel_for<_Sent, _It>)
+  // bel::subrange{} :
   using subrange = belleviews::sub_view<_It, _Sent, _Kind>;
 }
 

@@ -46,103 +46,6 @@
 //*************************************************************
 namespace belleviews {
 
-  /* STD:
-namespace std::ranges {
-  template<view V>
-  class take_view : public view_interface<take_view<V>> {
-  private:
-    V base_ = V(); // exposition only
-    range_difference_t<V> count_ = 0; // exposition only
-    // 26.7.10.3, class template take_view::sentinel
-    template<bool> class sentinel ; // exposition only
-  public:
-  take_view() requires default_initializable<V> = default;
-  constexpr take_view(V base, range_difference_t<V> count);
-
-  constexpr V base() const & requires copy_constructible<V> { return base_; }
-  constexpr V base() && { return std::move(base_); }
-
-  constexpr auto begin() requires (!simple-view <V>) {
-    if constexpr (sized_range<V>) {
-      if constexpr (random_access_range<V>) {
-        return ranges::begin(base_);
-      } else {
-        auto sz = range_difference_t<V>(size());
-        return counted_iterator(ranges::begin(base_), sz);
-      }
-    } else {
-      return counted_iterator(ranges::begin(base_), count_);
-    }
-  }
-  constexpr auto begin() const requires range<const V> {
-    if constexpr (sized_range<const V>) {
-      if constexpr (random_access_range<const V>) {
-        return ranges::begin(base_);
-      } else {
-        auto sz = range_difference_t<const V>(size());
-        return counted_iterator(ranges::begin(base_), sz);
-      }
-    } else {
-      return counted_iterator(ranges::begin(base_), count_);
-    }
-  }
-  constexpr auto end() requires (!simple-view <V>) {
-    if constexpr (sized_range<V>) {
-      if constexpr (random_access_range<V>)
-        return ranges::begin(base_) + range_difference_t<V>(size());
-      else
-        return default_sentinel;
-    } else {
-      return sentinel <false>{ranges::end(base_)};
-    }
-  }
-  constexpr auto end() const requires range<const V> {
-    if constexpr (sized_range<const V>) {
-      if constexpr (random_access_range<const V>)
-        return ranges::begin(base_) + range_difference_t<const V>(size());
-      else
-        return default_sentinel;
-    } else {
-      return sentinel <true>{ranges::end(base_)};
-    }
-  }
-  constexpr auto size() requires sized_range<V> {
-    auto n = ranges::size(base_);
-    return ranges::min(n, static_cast<decltype(n)>(count_));
-  }
-  constexpr auto size() const requires sized_range<const V> {
-    auto n = ranges::size(base_);
-    return ranges::min(n, static_cast<decltype(n)>(count_));
-  }
-};
-template<class R>
-take_view(R&&, range_difference_t<R>) -> take_view<views::all_t<R>>;
-}
-
-namespace std::ranges {
-template<view V>
-template<bool Const>
-class take_view<V>::sentinel {
-  private:
-    using Base = maybe-const <Const, V>; // exposition only
-    template<bool OtherConst>
-    using CI = counted_iterator<iterator_t<maybe-const <OtherConst, V>>>; // exposition only
-    sentinel_t<Base > end_ = sentinel_t<Base >(); // exposition only
-  public:
-    sentinel () = default;
-    constexpr explicit sentinel (sentinel_t<Base > end);
-    constexpr sentinel (sentinel <!Const> s)
-      requires Const && convertible_to<sentinel_t<V>, sentinel_t<Base >>;
-    constexpr sentinel_t<Base > base() const;
-    friend constexpr bool operator==(const CI <Const>& y, const sentinel & x);
-    template<bool OtherConst = !Const>
-      requires sentinel_for<sentinel_t<Base >, iterator_t<maybe-const <OtherConst, V>>>
-      friend constexpr bool operator==(const CI <OtherConst>& y, const sentinel & x);
-};
-}
-
-*/
-
 template<std::ranges::view V>
 class take_view : public std::ranges::view_interface<take_view<V>>
 {
@@ -341,11 +244,13 @@ struct _Take {
    }
 };
 
+// belleviews::take() :
 inline constexpr _Take take;
 
 } // namespace belleviews
 
 namespace bel::views {
+  // bel::views::take() :
   inline constexpr belleviews::_Take take;
 }
 
