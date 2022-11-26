@@ -317,5 +317,5 @@ the code is licensed according to the GNU General Public License, version 3.
 You can redistribute and/or modify the code under the terms of the **GNU General Public License**
 as published by the Free Software Foundation; either version 3,
 or (at your option) any later version.
-See the file <xref href="COPYING3">COPYING3</xref>.
+See the file [COPYING3](COPYING3).
 
