@@ -52,12 +52,12 @@ class ref_view : public std::ranges::view_interface<ref_view<Rg>>
  private:
   Rg* rgPtr;
 
-  static void _S_fun(Rg&); // not defined
-  static void _S_fun(Rg&&) = delete;
+  static void _s_fun(Rg&); // not defined
+  static void _s_fun(Rg&&) = delete;
 
  public:
   template<_intern::different_from<ref_view> T>
-  requires std::convertible_to<T, Rg&> && requires { _S_fun(std::declval<T>()); }
+  requires std::convertible_to<T, Rg&> && requires { _s_fun(std::declval<T>()); }
   constexpr ref_view(T&& __t) noexcept(noexcept(static_cast<Rg&>(std::declval<T>())))
    : rgPtr(std::addressof(static_cast<Rg&>(std::forward<T>(__t)))) {
   }

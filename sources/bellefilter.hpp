@@ -53,24 +53,24 @@ namespace belleviews {
 
 namespace _intern
 {
-  template<typename _Base>
+  template<typename Base>
   struct filter_view_iter_cat {
   };
 
   template<std::ranges::forward_range Base>
   struct filter_view_iter_cat<Base> {
    private:
-    static auto _S_iter_cat() {
-      using _Cat = typename std::iterator_traits<std::ranges::iterator_t<Base>>::iterator_category;
-      if constexpr (std::derived_from<_Cat, std::bidirectional_iterator_tag>)
+    static auto _s_iter_cat() {
+      using Cat = typename std::iterator_traits<std::ranges::iterator_t<Base>>::iterator_category;
+      if constexpr (std::derived_from<Cat, std::bidirectional_iterator_tag>)
         return std::bidirectional_iterator_tag{};
-      else if constexpr (std::derived_from<_Cat, std::forward_iterator_tag>)
+      else if constexpr (std::derived_from<Cat, std::forward_iterator_tag>)
         return std::forward_iterator_tag{};
       else
-        return _Cat{};
+        return Cat{};
     }
    public:
-    using iterator_category = decltype(_S_iter_cat());
+    using iterator_category = decltype(_s_iter_cat());
   };
 } // namespace _intern
 
@@ -83,7 +83,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   struct Iterator : _intern::filter_view_iter_cat<V>
   {
    private:
-    static constexpr auto _S_iter_concept() {
+    static constexpr auto _s_iter_concept() {
       if constexpr (std::ranges::bidirectional_range<V>)
         return std::bidirectional_iterator_tag{};
       else if constexpr (std::ranges::forward_range<V>)
@@ -93,7 +93,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
 
    public:
-    using iterator_concept = decltype(_S_iter_concept());
+    using iterator_concept = decltype(_s_iter_concept());
     //using iterator_category = FROM BASE CLASS _intern::filter_view_iter_cat<V>
     using value_type = std::ranges::range_value_t<V>;
     using difference_type = std::ranges::range_difference_t<V>;
@@ -174,7 +174,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
   struct ConstIterator : _intern::filter_view_iter_cat<V>
   {
    private:
-    static constexpr auto _S_iter_concept() {
+    static constexpr auto _s_iter_concept() {
       if constexpr (std::ranges::bidirectional_range<V>)
         return std::bidirectional_iterator_tag{};
       else if constexpr (std::ranges::forward_range<V>)
@@ -184,7 +184,7 @@ class filter_view : public std::ranges::view_interface<filter_view<V, Pred>>
     }
 
    public:
-    using iterator_concept = decltype(_S_iter_concept());
+    using iterator_concept = decltype(_s_iter_concept());
     //using iterator_category = FROM BASE CLASS _intern::filter_view_iter_cat<V>
     using value_type = std::ranges::range_value_t<V>;
     using difference_type = std::ranges::range_difference_t<V>;

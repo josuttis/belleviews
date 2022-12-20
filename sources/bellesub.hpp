@@ -57,26 +57,26 @@ requires (Kind == subrange_kind::sized || !std::sized_sentinel_for<Sent, It>)
 class sub_view : public std::ranges::view_interface<sub_view<It, Sent, Kind>>
 {
     private:
-      static constexpr bool _S_store_size
+      static constexpr bool _s_store_size
         = Kind == subrange_kind::sized && !std::sized_sentinel_for<Sent, It>;
 
-      //friend struct views::_Drop; // Needs to inspect _S_store_size.
+      //friend struct views::Drop; // Needs to inspect _s_store_size.
 
-      It _M_begin = It();
-      [[no_unique_address]] Sent _M_end = Sent();
+      It _m_begin = It();
+      [[no_unique_address]] Sent _m_end = Sent();
 
       using __size_type
         = _intern::make_unsigned_like_t<std::iter_difference_t<It>>;
 
-      template<typename, bool = _S_store_size>
-        struct _Size
+      template<typename, bool = _s_store_size>
+        struct Size
         { };
 
       template<typename T>
-        struct _Size<T, true>
-        { T _M_size; };
+        struct Size<T, true>
+        { T _m_size; };
 
-      [[no_unique_address]] _Size<__size_type> _M_size = {};
+      [[no_unique_address]] Size<__size_type> _m_size = {};
 
     public:
       sub_view() requires std::default_initializable<It> = default;
@@ -85,8 +85,8 @@ class sub_view : public std::ranges::view_interface<sub_view<It, Sent, Kind>>
       sub_view(_intern::convertible_to_non_slicing<It> auto __i, Sent __s)
       noexcept(std::is_nothrow_constructible_v<It, decltype(__i)>
                && std::is_nothrow_constructible_v<Sent, Sent&>)
-        requires (!_S_store_size)
-      : _M_begin(std::move(__i)), _M_end(__s)
+        requires (!_s_store_size)
+      : _m_begin(std::move(__i)), _m_end(__s)
       { }
 
       constexpr
@@ -95,80 +95,80 @@ class sub_view : public std::ranges::view_interface<sub_view<It, Sent, Kind>>
       noexcept(std::is_nothrow_constructible_v<It, decltype(__i)>
                && std::is_nothrow_constructible_v<Sent, Sent&>)
         requires (Kind == subrange_kind::sized)
-      : _M_begin(std::move(__i)), _M_end(__s)
+      : _m_begin(std::move(__i)), _m_end(__s)
       {
-        if constexpr (_S_store_size)
-          _M_size._M_size = __n;
+        if constexpr (_s_store_size)
+          _m_size._m_size = __n;
       }
 
-      template<_intern::different_from<sub_view> _Rng>
-        requires std::ranges::borrowed_range<_Rng>
-          && _intern::convertible_to_non_slicing<std::ranges::iterator_t<_Rng>, It>
-          && std::convertible_to<std::ranges::sentinel_t<_Rng>, Sent>
+      template<_intern::different_from<sub_view> Rng>
+        requires std::ranges::borrowed_range<Rng>
+          && _intern::convertible_to_non_slicing<std::ranges::iterator_t<Rng>, It>
+          && std::convertible_to<std::ranges::sentinel_t<Rng>, Sent>
         constexpr
-        sub_view(_Rng&& __r)
+        sub_view(Rng&& __r)
         noexcept(noexcept(sub_view(__r, std::ranges::size(__r))))
-        requires _S_store_size && std::ranges::sized_range<_Rng>
+        requires _s_store_size && std::ranges::sized_range<Rng>
         : sub_view(__r, std::ranges::size(__r))
         { }
 
-      template<_intern::different_from<sub_view> _Rng>
-        requires std::ranges::borrowed_range<_Rng>
-          && _intern::convertible_to_non_slicing<std::ranges::iterator_t<_Rng>, It>
-          && std::convertible_to<std::ranges::sentinel_t<_Rng>, Sent>
+      template<_intern::different_from<sub_view> Rng>
+        requires std::ranges::borrowed_range<Rng>
+          && _intern::convertible_to_non_slicing<std::ranges::iterator_t<Rng>, It>
+          && std::convertible_to<std::ranges::sentinel_t<Rng>, Sent>
         constexpr
-        sub_view(_Rng&& __r)
+        sub_view(Rng&& __r)
         noexcept(noexcept(sub_view(std::ranges::begin(__r), std::ranges::end(__r))))
-        requires (!_S_store_size)
+        requires (!_s_store_size)
         : sub_view(std::ranges::begin(__r), std::ranges::end(__r))
         { }
 
-      template<std::ranges::borrowed_range _Rng>
-        requires _intern::convertible_to_non_slicing<std::ranges::iterator_t<_Rng>, It>
-          && std::convertible_to<std::ranges::sentinel_t<_Rng>, Sent>
+      template<std::ranges::borrowed_range Rng>
+        requires _intern::convertible_to_non_slicing<std::ranges::iterator_t<Rng>, It>
+          && std::convertible_to<std::ranges::sentinel_t<Rng>, Sent>
         constexpr
-        sub_view(_Rng&& __r, __size_type __n)
+        sub_view(Rng&& __r, __size_type __n)
         noexcept(noexcept(sub_view(std::ranges::begin(__r), std::ranges::end(__r), __n)))
         requires (Kind == subrange_kind::sized)
         : sub_view{std::ranges::begin(__r), std::ranges::end(__r), __n}
         { }
 
-      template<_intern::different_from<sub_view> _PairLike>
-        requires _intern::pair_like_convertible_from<_PairLike, const It&,
+      template<_intern::different_from<sub_view> PairLike>
+        requires _intern::pair_like_convertible_from<PairLike, const It&,
                                                         const Sent&>
         constexpr
-        operator _PairLike() const
-        { return _PairLike(_M_begin, _M_end); }
+        operator PairLike() const
+        { return PairLike(_m_begin, _m_end); }
 
       // begin():
       constexpr It begin() requires std::copyable<It> {
-        return _M_begin;
+        return _m_begin;
       }
       constexpr auto begin() const requires std::copyable<It> {
-        return std::make_const_iterator(_M_begin);
+        return std::make_const_iterator(_m_begin);
       }
 
       [[nodiscard]] constexpr It begin() requires (!std::copyable<It>) {
-        return std::move(_M_begin); 
+        return std::move(_m_begin); 
       }
 
       // end():
       constexpr Sent end() {
-        return _M_end;
+        return _m_end;
       }
       constexpr auto end() const {
-        return std::make_const_sentinel(_M_end); 
+        return std::make_const_sentinel(_m_end); 
       }
 
-      constexpr bool empty() const { return _M_begin == _M_end; }
+      constexpr bool empty() const { return _m_begin == _m_end; }
 
       constexpr __size_type
       size() const requires (Kind == subrange_kind::sized)
       {
-        if constexpr (_S_store_size)
-          return _M_size._M_size;
+        if constexpr (_s_store_size)
+          return _m_size._m_size;
         else
-          return _intern::to_unsigned_like(_M_end - _M_begin);
+          return _intern::to_unsigned_like(_m_end - _m_begin);
       }
 
       [[nodiscard]] constexpr sub_view
@@ -204,16 +204,16 @@ class sub_view : public std::ranges::view_interface<sub_view<It, Sent, Kind>>
         if constexpr (std::bidirectional_iterator<It>)
           if (__n < 0)
             {
-              std::ranges::advance(_M_begin, __n);
-              if constexpr (_S_store_size)
-                _M_size._M_size += _intern::to_unsigned_like(-__n);
+              std::ranges::advance(_m_begin, __n);
+              if constexpr (_s_store_size)
+                _m_size._m_size += _intern::to_unsigned_like(-__n);
               return *this;
             }
 
         __glibcxx_assert(__n >= 0);
-        auto __d = __n - std::ranges::advance(_M_begin, __n, _M_end);
-        if constexpr (_S_store_size)
-          _M_size._M_size -= _intern::to_unsigned_like(__d);
+        auto __d = __n - std::ranges::advance(_m_begin, __n, _m_end);
+        if constexpr (_s_store_size)
+          _m_size._m_size -= _intern::to_unsigned_like(__d);
         return *this;
       }
 };
@@ -226,35 +226,35 @@ template<std::input_or_output_iterator It, std::sentinel_for<It> Sent>
              _intern::make_unsigned_like_t<std::iter_difference_t<It>>)
   -> sub_view<It, Sent, subrange_kind::sized>;
 
-template<std::ranges::borrowed_range _Rng>
-    sub_view(_Rng&&)
-  -> sub_view<std::ranges::iterator_t<_Rng>, std::ranges::sentinel_t<_Rng>,
-              (std::ranges::sized_range<_Rng>
-               || std::sized_sentinel_for<std::ranges::sentinel_t<_Rng>, std::ranges::iterator_t<_Rng>>)
+template<std::ranges::borrowed_range Rng>
+    sub_view(Rng&&)
+  -> sub_view<std::ranges::iterator_t<Rng>, std::ranges::sentinel_t<Rng>,
+              (std::ranges::sized_range<Rng>
+               || std::sized_sentinel_for<std::ranges::sentinel_t<Rng>, std::ranges::iterator_t<Rng>>)
               ? subrange_kind::sized : subrange_kind::unsized>;
 
-template<std::ranges::borrowed_range _Rng>
-    sub_view(_Rng&&,
-             _intern::make_unsigned_like_t<std::ranges::range_difference_t<_Rng>>)
-  -> sub_view<std::ranges::iterator_t<_Rng>, std::ranges::sentinel_t<_Rng>, subrange_kind::sized>;
+template<std::ranges::borrowed_range Rng>
+    sub_view(Rng&&,
+             _intern::make_unsigned_like_t<std::ranges::range_difference_t<Rng>>)
+  -> sub_view<std::ranges::iterator_t<Rng>, std::ranges::sentinel_t<Rng>, subrange_kind::sized>;
 
-template<size_t _Num, class It, class Sent, subrange_kind Kind>
-    requires (_Num < 2)
+template<size_t Num, class It, class Sent, subrange_kind Kind>
+    requires (Num < 2)
     constexpr auto
 get(const sub_view<It, Sent, Kind>& __r)
     {
-      if constexpr (_Num == 0)
+      if constexpr (Num == 0)
         return __r.begin();
       else
         return __r.end();
     }
 
-template<size_t _Num, class It, class Sent, subrange_kind Kind>
-    requires (_Num < 2)
+template<size_t Num, class It, class Sent, subrange_kind Kind>
+    requires (Num < 2)
     constexpr auto
 get(sub_view<It, Sent, Kind>&& __r)
     {
-      if constexpr (_Num == 0)
+      if constexpr (Num == 0)
         return __r.begin();
       else
         return __r.end();
@@ -271,9 +271,9 @@ template<typename It, typename Sent, belleviews::subrange_kind Kind>
 inline constexpr bool std::ranges::enable_borrowed_range<belleviews::sub_view<It, Sent, Kind>> = true;
 
 //TODO:
-//template<range _Range>
-//  using borrowed_subrange_t = __conditional_t<borrowed_range<_Range>,
-//                                                sub_view<std::ranges::iterator_t<_Range>>,
+//template<range Range>
+//  using borrowed_subrange_t = __conditional_t<borrowed_range<Range>,
+//                                                sub_view<std::ranges::iterator_t<Range>>,
 //                                                dangling>;
 
 
