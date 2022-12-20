@@ -407,7 +407,7 @@ namespace _intern {
   concept can_transform_view = requires { transform_view(std::declval<Rg>(), std::declval<Func>()); };
 }
 
-struct _Transform {
+struct Transform {
    // for:  bel::views::transform(rg, func)
    template<std::ranges::viewable_range Rg, typename Func>
    requires _intern::can_transform_view<Rg, Func>
@@ -436,13 +436,13 @@ struct _Transform {
 };
 
 // belleviews::transform() :
-inline constexpr _Transform transform;
+inline constexpr Transform transform;
 
 } // namespace belleviews
 
 namespace bel::views {
   // bel::views::transform() :
-  inline constexpr belleviews::_Transform transform;
+  inline constexpr belleviews::Transform transform;
 }
 
 #endif // BELLETRANSFORM_HPP

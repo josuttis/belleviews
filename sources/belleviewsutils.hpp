@@ -68,27 +68,27 @@ namespace belleviews::_intern {
                       (std::is_pointer_v<It> || requires(It it) { it.operator->(); });
 
   // concept different-from:
-  template<typename _Tp, typename _Up>
-  concept different_from = !std::same_as<std::remove_cvref_t<_Tp>, std::remove_cvref_t<_Up>>;
+  template<typename T, typename U>
+  concept different_from = !std::same_as<std::remove_cvref_t<T>, std::remove_cvref_t<U>>;
 
 
   // is_initializer_list
-  template<typename _Tp>
+  template<typename T>
   inline constexpr bool is_initializer_list = false;
 
-  template<typename _Tp>
-  inline constexpr bool is_initializer_list<std::initializer_list<_Tp>> = true;
+  template<typename T>
+  inline constexpr bool is_initializer_list<std::initializer_list<T>> = true;
 
   // maybe_const
-  template<bool _Const, typename _Tp>
-    using maybe_const_t = std::conditional_t<_Const, const _Tp, _Tp>;
+  template<bool ConstT, typename T>
+    using maybe_const_t = std::conditional_t<ConstT, const T, T>;
 
   // can_reference:
-  template<typename _Tp>
-    using with_ref = _Tp&;
+  template<typename T>
+    using with_ref = T&;
 
-  template<typename _Tp>
-    concept can_reference = requires { typename with_ref<_Tp>; };
+  template<typename T>
+    concept can_reference = requires { typename with_ref<T>; };
 
 
   // new range types of C++23:
@@ -151,36 +151,36 @@ namespace belleviews::_intern {
   // TODO: optimize SemiregBox as in gcc (__box there)
 
   // convertible_to_non_slicing
-  template<typename _From, typename _To>
+  template<typename From, typename To>
       concept uses_nonqualification_pointer_conversion
-	= std::is_pointer_v<_From> && std::is_pointer_v<_To>
-	  && !std::convertible_to<std::remove_pointer_t<_From>(*)[],
-			          std::remove_pointer_t<_To>(*)[]>;
+	= std::is_pointer_v<From> && std::is_pointer_v<To>
+	  && !std::convertible_to<std::remove_pointer_t<From>(*)[],
+			          std::remove_pointer_t<To>(*)[]>;
 
-  template<typename _From, typename _To>
-      concept convertible_to_non_slicing = std::convertible_to<_From, _To>
-	&& !uses_nonqualification_pointer_conversion<std::decay_t<_From>,
-						     std::decay_t<_To>>;
+  template<typename From, typename To>
+      concept convertible_to_non_slicing = std::convertible_to<From, To>
+	&& !uses_nonqualification_pointer_conversion<std::decay_t<From>,
+						     std::decay_t<To>>;
 
   // pair_like_convertible_from
-  template<typename _Tp>
+  template<typename T>
       concept pair_like
-	= !std::is_reference_v<_Tp> && requires(_Tp __t)
+	= !std::is_reference_v<T> && requires(T __t)
 	{
-	  typename std::tuple_size<_Tp>::type;
-	  requires std::derived_from<std::tuple_size<_Tp>, std::integral_constant<size_t, 2>>;
-	  typename std::tuple_element_t<0, std::remove_const_t<_Tp>>;
-	  typename std::tuple_element_t<1, std::remove_const_t<_Tp>>;
-	  { get<0>(__t) } -> std::convertible_to<const std::tuple_element_t<0, _Tp>&>;
-	  { get<1>(__t) } -> std::convertible_to<const std::tuple_element_t<1, _Tp>&>;
+	  typename std::tuple_size<T>::type;
+	  requires std::derived_from<std::tuple_size<T>, std::integral_constant<size_t, 2>>;
+	  typename std::tuple_element_t<0, std::remove_const_t<T>>;
+	  typename std::tuple_element_t<1, std::remove_const_t<T>>;
+	  { get<0>(__t) } -> std::convertible_to<const std::tuple_element_t<0, T>&>;
+	  { get<1>(__t) } -> std::convertible_to<const std::tuple_element_t<1, T>&>;
 	};
 
-  template<typename _Tp, typename _Up, typename _Vp>
+  template<typename T, typename U, typename V>
       concept pair_like_convertible_from
-	= !std::ranges::range<_Tp> && pair_like<_Tp>
-	&& std::constructible_from<_Tp, _Up, _Vp>
-	&& convertible_to_non_slicing<_Up, std::tuple_element_t<0, _Tp>>
-	&& std::convertible_to<_Vp, std::tuple_element_t<1, _Tp>>;
+	= !std::ranges::range<T> && pair_like<T>
+	&& std::constructible_from<T, U, V>
+	&& convertible_to_non_slicing<U, std::tuple_element_t<0, T>>
+	&& std::convertible_to<V, std::tuple_element_t<1, T>>;
 
   // make_unsigned_like:
   using max_size_type = std::size_t;   // TODO: maybe to use gcc definition instead
@@ -193,10 +193,10 @@ namespace belleviews::_intern {
     to_unsigned_like(max_diff_type __t) noexcept
     { return max_size_type(__t); }
 
-  template<std::integral _Tp>
+  template<std::integral T>
       constexpr auto
-      to_unsigned_like(_Tp __t) noexcept
-      { return static_cast<std::make_unsigned_t<_Tp>>(__t); }
+      to_unsigned_like(T __t) noexcept
+      { return static_cast<std::make_unsigned_t<T>>(__t); }
 
 #if defined __STRICT_ANSI__ && defined __SIZEOF_INT128__
   constexpr unsigned __int128
@@ -208,9 +208,9 @@ namespace belleviews::_intern {
     { return __t; }
 #endif
 
-  template<typename _Tp>
+  template<typename T>
       using make_unsigned_like_t
-	= decltype(_intern::to_unsigned_like(std::declval<_Tp>()));
+	= decltype(_intern::to_unsigned_like(std::declval<T>()));
 
 } // namespace belleviews::_intern
 

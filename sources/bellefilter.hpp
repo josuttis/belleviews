@@ -383,7 +383,7 @@ namespace _intern {
   concept can_filter_view = requires { filter_view(std::declval<Rg>(), std::declval<Pred>()); };
 }
 
-struct _Filter {
+struct Filter {
    // for:  bel::views::filter(rg, pred)
    template<std::ranges::viewable_range Rg, typename Pred>
    requires _intern::can_filter_view<Rg, Pred>
@@ -412,14 +412,14 @@ struct _Filter {
 };
 
 // belleviews::filter() :
-inline constexpr _Filter filter;
+inline constexpr Filter filter;
 
 } // namespace belleviews
 
 
 namespace bel::views {
   // bel::views::filter() :
-  inline constexpr belleviews::_Filter filter;
+  inline constexpr belleviews::Filter filter;
 }
 
 #endif // BELLEFILTER_HPP

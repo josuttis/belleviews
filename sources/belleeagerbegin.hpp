@@ -167,7 +167,7 @@ namespace _intern {
   concept can_eager_begin_view = requires { eager_begin_view(std::declval<Rg>()); };
 }
 
-struct _EagerBegin {
+struct EagerBegin {
    // for:  bel::views::eager_begin(rg)
    template<std::ranges::viewable_range Rg>
    requires _intern::can_eager_begin_view<Rg>
@@ -193,14 +193,14 @@ struct _EagerBegin {
 };
 
 // belleviews::eager_begin :
-inline constexpr _EagerBegin eager_begin;
+inline constexpr EagerBegin eager_begin;
 
 } // namespace belleviews
 
 
 namespace bel::views {
   // bel::views::eager_begin :
-  inline constexpr belleviews::_EagerBegin eager_begin;
+  inline constexpr belleviews::EagerBegin eager_begin;
 }
 
 #endif // BELLEEAGERBEGIN_HPP

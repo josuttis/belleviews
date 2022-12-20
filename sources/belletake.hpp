@@ -216,7 +216,7 @@ namespace _intern {
   concept can_take_view = requires { take_view(std::declval<Rg>(), std::declval<DiffT>()); };
 }
 
-struct _Take {
+struct Take {
    // for:  bel::views::take(rg, 2)
    template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
    requires _intern::can_take_view<Rg, DiffT>
@@ -245,13 +245,13 @@ struct _Take {
 };
 
 // belleviews::take() :
-inline constexpr _Take take;
+inline constexpr Take take;
 
 } // namespace belleviews
 
 namespace bel::views {
   // bel::views::take() :
-  inline constexpr belleviews::_Take take;
+  inline constexpr belleviews::Take take;
 }
 
 #endif // BELLETAKE_HPP

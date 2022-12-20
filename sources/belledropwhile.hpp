@@ -116,7 +116,7 @@ namespace _intern {
   concept can_drop_while_view = requires { drop_while_view(std::declval<Rg>(), std::declval<Pred>()); };
 }
 
-struct _DropWhile {
+struct DropWhile {
    // for:  bel::views::drop(rg, 2)
    template<std::ranges::viewable_range Rg, typename Pred>
    requires _intern::can_drop_while_view<Rg, Pred>
@@ -145,14 +145,14 @@ struct _DropWhile {
 };
 
 // belleviews::drop_while() :
-inline constexpr _DropWhile drop_while;
+inline constexpr DropWhile drop_while;
 
 } // namespace belleviews
 
 
 namespace bel::views {
   // bel::views::drop_while() :
-  inline constexpr belleviews::_DropWhile drop_while;
+  inline constexpr belleviews::DropWhile drop_while;
 }
 
 

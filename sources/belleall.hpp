@@ -56,10 +56,10 @@ class ref_view : public std::ranges::view_interface<ref_view<Rg>>
   static void _S_fun(Rg&&) = delete;
 
  public:
-  template<_intern::different_from<ref_view> _Tp>
-  requires std::convertible_to<_Tp, Rg&> && requires { _S_fun(std::declval<_Tp>()); }
-  constexpr ref_view(_Tp&& __t) noexcept(noexcept(static_cast<Rg&>(std::declval<_Tp>())))
-   : rgPtr(std::addressof(static_cast<Rg&>(std::forward<_Tp>(__t)))) {
+  template<_intern::different_from<ref_view> T>
+  requires std::convertible_to<T, Rg&> && requires { _S_fun(std::declval<T>()); }
+  constexpr ref_view(T&& __t) noexcept(noexcept(static_cast<Rg&>(std::declval<T>())))
+   : rgPtr(std::addressof(static_cast<Rg&>(std::forward<T>(__t)))) {
   }
 
   constexpr Rg& base() const {
@@ -210,7 +210,7 @@ namespace _intern {
   concept can_owning_view = requires { owning_view(std::declval<Rg>()); };
 }
 
-struct _All {
+struct All {
   // for:  bel::views::all(rg)
   template<std::ranges::viewable_range Rg>
   requires std::ranges::view<Rg> || _intern::can_ref_view<Rg> || _intern::can_owning_view<Rg>
@@ -230,7 +230,7 @@ struct _All {
 
 
 // belleviews::all() :
-inline constexpr _All all;
+inline constexpr All all;
 
 // belleviews::all_t :
 template<std::ranges::viewable_range Rg>
@@ -242,7 +242,7 @@ template<std::ranges::viewable_range Rg>
 namespace bel::views {
 
   // bel::views::all() :
-  inline constexpr belleviews::_All all;
+  inline constexpr belleviews::All all;
 
   // bel::views::all_t :
   template<std::ranges::viewable_range Rg>

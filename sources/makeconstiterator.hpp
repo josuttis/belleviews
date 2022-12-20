@@ -19,11 +19,11 @@ class basic_const_iterator;
 //   Given some type I, the concept not-a-const-iterator is defined as
 //   - false if I is a specialization of basic_const_iterator and
 //   - true otherwise.
-template<typename _Tp>
+template<typename Iterator>
 inline constexpr bool is_not_a_const_iterator = false;
 
-template<typename _Tp>
-inline constexpr bool is_not_a_const_iterator<basic_const_iterator<_Tp>> = true;
+template<typename Iterator>
+inline constexpr bool is_not_a_const_iterator<basic_const_iterator<Iterator>> = true;
 
 template <typename Iterator>
 concept NotAConstIterator = is_not_a_const_iterator<Iterator>;
@@ -51,7 +51,7 @@ class basic_const_iterator : public const_iterator_iter_cat<Iterator>
   // - Otherwise, if Iterator models bidirectional_iterator, then iterator_concept denotes bidirectional_iterator_tag.
   // - Otherwise, if Iterator models forward_iterator, then iterator_concept denotes forward_iterator_tag.
   // - Otherwise, iterator_concept denotes input_iterator_tag.
-  static auto _S_iter_concept() {
+  static auto _iter_concept() {
     if constexpr (std::contiguous_iterator<Iterator>)
       return std::contiguous_iterator_tag{};
     else if constexpr (std::random_access_iterator<Iterator>)
@@ -69,7 +69,7 @@ private:
   using reference = ::belleviews::_intern::iter_const_reference_t<Iterator>;  // exposition only
 
 public:
-  using iterator_concept = decltype(_S_iter_concept());
+  using iterator_concept = decltype(_iter_concept());
   //using iterator_category = see below ; // not always present (defined via base type)
   using value_type = std::iter_value_t<Iterator>;
   using difference_type = std::iter_difference_t<Iterator>;

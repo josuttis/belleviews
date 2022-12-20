@@ -120,7 +120,7 @@ namespace _intern {
   concept can_drop_view = requires { drop_view(std::declval<Rg>(), std::declval<DiffT>()); };
 }
 
-struct _Drop {
+struct Drop {
    // for:  bel::views::drop(rg, 2)
    template<std::ranges::viewable_range Rg, typename DiffT = std::ranges::range_difference_t<Rg>>
    requires _intern::can_drop_view<Rg, DiffT>
@@ -149,14 +149,14 @@ struct _Drop {
 };
 
 // belleviews::drop() :
-inline constexpr _Drop drop;
+inline constexpr Drop drop;
 
 }// namespace belleviews
 
 
 namespace bel::views {
   // bel::views::drop() :
-  inline constexpr belleviews::_Drop drop;
+  inline constexpr belleviews::Drop drop;
 }
 
 #endif // BELLEDROP_HPP
