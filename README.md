@@ -342,7 +342,7 @@ permissions described in the GCC Runtime Library Exception, version
 
 You should have received a copy of the GNU General Public License and
 a copy of the GCC Runtime Library Exception along with this program;
-see the file **[COPYING3](COPYING3)** and COPYING.RUNTIME respectively.
+see the file **[COPYING3](COPYING3)** and **[COPYING.RUNTIME](COPYING.RUNTIME)** respectively.
 If not, see <http://www.gnu.org/licenses/>.
 
 See the end of the file **[COPYING3](COPYING3)** for additional details about how to
