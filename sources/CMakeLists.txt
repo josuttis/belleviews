@@ -19,4 +19,6 @@ if (BELLEVIEW_WITH_TESTS)
 
     add_executable(testtransform testtransform.cpp)
     add_test(NAME testtransform COMMAND testtransform)
+
+    message(STATUS "Enabled BelleViews Tests")
 endif(BELLEVIEW_WITH_TESTS)
