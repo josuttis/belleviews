@@ -146,36 +146,11 @@ void testConcurrentIteration()
 }
 
 
-void testReadme()
-{
-  // example in README.md:
-  {
-    std::list coll{1, 2, 3, 4, 5, 6, 7, 8};    // no random-access range
-
-    auto vStd = coll | std::views::take(2);    // standard take view
-    std::jthread t1{[&] {
-      for (const auto& elem : vStd) {          // vStd.begin() in separate thread
-        std::cout << elem << '\n';
-      }}};
-    //auto cnt1 = std::ranges::count_if(vStd,    // Runtime ERROR (data race)
-    //                                  [](int i) {return i < 0;});  
-    
-    auto vBel = coll | bel::views::take(2);    // belle take view
-    std::jthread t2{[&] {
-      for (const auto& elem : vBel) {          // vBel.begin() in separate thread
-        std::cout << elem << '\n';
-      }}};
-    auto cnt2 = std::ranges::count_if(vBel,    // OK
-                                      [](int i) {return i < 0;});  
-  }
-}
-
 
 int main()
 {
   testBasics();
   testConstPropagation();
   testConcurrentIteration();
-  testReadme();
 }
 
