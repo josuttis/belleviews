@@ -143,14 +143,10 @@ void testConcurrentIteration()
   std::list coll{1, 2, 3, 4, 5, 6, 7, 8};           // no random-access range
   static_assert(!std::ranges::random_access_range<decltype(coll)>);
 
-  // test concurrent read iterations:
-  auto v3Std = coll | std::views::take_while(notTimes3);
-  //auto sumUB = concurrentPrintAndAccum(v3std);             // RUNTIME ERROR with std views
-
   auto v3 = coll | bel::views::take_while(notTimes3);
-  auto sumOK = concurrentPrintAndAccum(v3);                  // OK with belle views
+  auto sumOK = concurrentPrintAndAccum(v3);
   std::cout << "sumOK: " << sumOK << '\n';
-  sumOK = concurrentPrintAndAccum(v3 | std::views::common);  // OK with belle views
+  sumOK = concurrentPrintAndAccum(v3 | std::views::common);
   std::cout << "sumOK: " << sumOK << '\n';
 }
 
