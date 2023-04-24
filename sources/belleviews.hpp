@@ -67,6 +67,7 @@
 #include "belletake.hpp"
 #include "belledrop.hpp"
 #include "belledropwhile.hpp"
+#include "belletakewhile.hpp"
 #ifdef BEL_BORROWED
 #include "bellefilterborrowed.hpp"
 #else
