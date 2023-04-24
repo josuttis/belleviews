@@ -81,7 +81,16 @@ void testBasics()
 
   auto v7 = coll | bel::views::take_while(notTimes3) | std::views::take(2);
   printConst(v7);     // OK
-
+  // test with common and non-common range:
+  {
+    std::cout << "--- test drop_while_view on common range:\n";
+    auto vCommon = std::views::iota(1, 10);
+    auto vfCommon = vCommon | bel::views::drop_while(notTimes3);
+    printConst(vCommon);
+    printConst(vfCommon);
+    static_assert(std::ranges::common_range<decltype(vCommon)>);
+    static_assert(std::ranges::common_range<decltype(vfCommon)>);
+  }
   {
     std::cout << "--- test take_while_view on non-common range:\n"; 
     auto vNonCommon = std::views::iota(1, 10L);
