@@ -37,13 +37,8 @@
 //
 // A C++ view
 // with the following benefits compared to C++ standard views
-// - Iterating is stateles
-//   - Can iterate over elements when the view is const
-//   - Supports concurrent iterations
-//   - Read iterations do not affect later statements
 // - Always propagates const
 // Because
-// - This view does never cache begin()
 // - This view yields const iterators when it is const
 //*************************************************************
 namespace belleviews {
